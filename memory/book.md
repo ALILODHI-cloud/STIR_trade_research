@@ -30,11 +30,12 @@ SOFR, SONIA, ESTR/Euribor, TONA, CORRA, AUD/NZD bank bills.
 - [ ] Confirm the desk's fly sign convention.
 - [ ] Decide scope of position tracking (ideas only, or full live book).
 - [ ] Decide whether to track fills and running P&L.
-- [x] RESOLVED 2026-09-19 — GitHub App installed; pushes work. Branch
-      `claude/hopeful-babbage-ahkapg` is live on the remote and this memory
-      is durable. One caveat: the hook only loads for sessions that clone a
-      branch containing it, so merging to the default branch is what makes it
-      apply everywhere.
+- [x] RESOLVED 2026-09-19 — GitHub App installed; pushes work. The repo was
+      empty, so `claude/hopeful-babbage-ahkapg` is both the only branch and
+      the remote's default. New sessions therefore clone it and pick up the
+      SessionStart hook with no merge needed. If a separate default branch
+      (main/master) is created later, the hook must be merged there or
+      sessions will start with no memory loaded.
 
 ## Decision log
 
