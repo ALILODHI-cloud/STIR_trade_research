@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>STIR strips — live</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <header class="top">
+    <div class="brand-block">
+      <p class="eyebrow">DM STIR research</p>
+      <h1>STIR strips</h1>
+    </div>
+    <div class="top-meta">
+      <div class="pill" id="asofPill">as-of —</div>
+      <div class="pill live" id="livePill"><span class="dot"></span> live</div>
+      <button type="button" class="btn" id="refreshBtn" title="Reload curves.json">Refresh</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Curve">
+    <button class="tab active" data-curve="EURIBOR" role="tab" aria-selected="true">Euribor</button>
+    <button class="tab" data-curve="SOFR" role="tab" aria-selected="false">SOFR</button>
+    <button class="tab" data-curve="SONIA" role="tab" aria-selected="false">SONIA</button>
+  </nav>
+
+  <main class="stage">
+    <section class="chart-panel">
+      <div class="chart-head">
+        <div>
+          <h2 id="curveTitle">Euribor</h2>
+          <p class="sub" id="curveSub">3M futures · rate %</p>
+        </div>
+        <div class="legend">
+          <span class="leg latest"><i></i> Latest (fixed)</span>
+          <span class="leg hist"><i></i> Historical</span>
+        </div>
+      </div>
+      <div id="chart" class="chart"></div>
+      <div class="slider-row">
+        <label for="dateSlider">History</label>
+        <input type="range" id="dateSlider" min="0" max="1" value="1" step="1" />
+        <div class="slider-dates">
+          <span id="sliderStart">—</span>
+          <strong id="sliderDate">—</strong>
+          <span id="sliderEnd">—</span>
+        </div>
+        <div class="transport">
+          <button type="button" class="btn ghost" id="playBtn">Play</button>
+          <button type="button" class="btn ghost" id="toLatestBtn">Jump to latest</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side" id="sidePanel">
+      <p class="side-eyebrow">Contract detail</p>
+      <h3 id="sideTitle">Click a point</h3>
+      <p class="side-hint" id="sideHint">
+        Select a contract on the strip. Side panel shows cumulative change vs
+        policy implied by that tenor, for latest and for the slider date.
+      </p>
+      <div id="sideBody" class="side-body hidden">
+        <div class="kv">
+          <span>Symbol</span><strong id="kvSymbol">—</strong>
+          <span>Contract</span><strong id="kvContract">—</strong>
+          <span>Policy</span><strong id="kvPolicy">—</strong>
+        </div>
+
+        <div class="block">
+          <h4>Latest <span id="blkLatestDate" class="muted"></span></h4>
+          <div class="metric">
+            <span>Implied 3M rate</span>
+            <strong id="mLatestRate">—</strong>
+          </div>
+          <div class="metric">
+            <span>Policy spot</span>
+            <strong id="mLatestSpot">—</strong>
+          </div>
+          <div class="metric accent">
+            <span>Cumul. vs policy</span>
+            <strong id="mLatestCumul">—</strong>
+          </div>
+        </div>
+
+        <div class="block">
+          <h4>Historical <span id="blkHistDate" class="muted"></span></h4>
+          <div class="metric">
+            <span>Implied 3M rate</span>
+            <strong id="mHistRate">—</strong>
+          </div>
+          <div class="metric">
+            <span>Policy spot then</span>
+            <strong id="mHistSpot">—</strong>
+          </div>
+          <div class="metric accent">
+            <span>Cumul. vs policy then</span>
+            <strong id="mHistCumul">—</strong>
+          </div>
+        </div>
+
+        <div class="block delta">
+          <h4>Δ priced change</h4>
+          <p class="delta-explain">
+            (latest cumul − policy) − (historical cumul − policy then)
+          </p>
+          <div class="metric big">
+            <span>Difference</span>
+            <strong id="mDiff">—</strong>
+          </div>
+          <p class="delta-note" id="deltaNote"></p>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="foot">
+    <span id="footSource">Barchart fixed contracts · FRED policy spots</span>
+    <span id="footUpdated">—</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
