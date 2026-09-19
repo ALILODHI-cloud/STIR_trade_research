@@ -37,6 +37,27 @@ SOFR, SONIA, ESTR/Euribor, TONA, CORRA, AUD/NZD bank bills.
       (main/master) is created later, the hook must be merged there or
       sessions will start with no memory loaded.
 
+## Data sourcing plan (as of 2026-09-19)
+
+- Chosen candidate: **Barchart**, for both latest-day settles and historical
+  daily bars per fixed contract. Owner corrected an earlier claim of mine that
+  futures settlement history was only obtainable from a terminal — Barchart's
+  API serves history too.
+- Blocked on two things:
+  1. Egress. Every external host is denied (17/17 providers tested, incl.
+     Barchart, Yahoo, Stooq, FRED, CME, ICE). The proxy bypass list contains
+     only package registries and Anthropic APIs. Fix is the environment's
+     network access policy at claude.ai/code, not a different vendor.
+  2. An API key. Preferred over page-scraping: stable format, no terms
+     friction. Store as an env var, never in the repo.
+- UNVERIFIED: Barchart's coverage of ICE products (Euribor, SONIA). CME
+  (SOFR) expected fine. Cheaper tiers often exclude ICE entitlements. Test
+  empirically before designing around it.
+- Contract symbols on Barchart must be confirmed against the live API, not
+  assumed. Use FIXED contracts (ERZ6, SR3H7), never generics (ER1, SFR1) —
+  generics roll, which silently splices contracts and invalidates any
+  change-over-time or biggest-mover calculation.
+
 ## Decision log
 
 Newest last. One line each: date, decision, why.
