@@ -1,0 +1,59 @@
+name: Deploy STIR dashboard
+
+on:
+  push:
+    branches: [claude/hopeful-babbage-ahkapg, cursor/stir-curve-snapshot-70e4]
+    paths:
+      - "research/dashboard/**"
+      - "data/cache/stir_curves/**"
+      - "scripts/build_dashboard_data.py"
+      - "scripts/refresh_fred_spots.py"
+      - ".github/workflows/deploy-dashboard.yml"
+  schedule:
+    # Weekdays 21:30 UTC ≈ after US settle
+    - cron: "30 21 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install pandas curl_cffi
+
+      - name: Refresh FRED policy spots
+        run: python3 scripts/refresh_fred_spots.py
+        continue-on-error: true
+
+      - name: Build dashboard JSON
+        run: python3 scripts/build_dashboard_data.py
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: research/dashboard
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

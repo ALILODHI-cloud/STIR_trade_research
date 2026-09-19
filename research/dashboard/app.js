@@ -13,6 +13,19 @@ const state = {
 
 const el = (id) => document.getElementById(id);
 
+const BASE = (() => {
+  // GitHub project Pages lives under /STIR_trade_research/
+  const parts = location.pathname.split("/").filter(Boolean);
+  if (parts[0] === "STIR_trade_research") return "/STIR_trade_research/";
+  return "./";
+})();
+
+function dataUrl(file, { bust = false } = {}) {
+  const u = new URL(`data/${file}`, new URL(BASE, location.href));
+  if (bust) u.searchParams.set("t", String(Date.now()));
+  return u.toString();
+}
+
 function bp(x) {
   if (x == null || Number.isNaN(x)) return "—";
   const v = x * 100;
@@ -31,8 +44,7 @@ function signedClass(x) {
 }
 
 async function loadData({ bust = false } = {}) {
-  const q = bust ? `?t=${Date.now()}` : "";
-  const res = await fetch(`data/curves.json${q}`, { cache: "no-store" });
+  const res = await fetch(dataUrl("curves.json", { bust }), { cache: "no-store" });
   if (!res.ok) throw new Error(`curves.json ${res.status}`);
   const data = await res.json();
   state.data = data;
@@ -263,9 +275,11 @@ async function refresh() {
   try {
     // Ask local server to rebuild if available; ignore failure for static open
     try {
-      await fetch("/api/rebuild", { method: "POST" });
+      await fetch(new URL("api/rebuild", new URL(BASE, location.origin)).toString(), {
+        method: "POST",
+      });
     } catch (_) {
-      /* static file mode */
+      /* static / GitHub Pages — no rebuild API */
     }
     await loadData({ bust: true });
     setTab(state.curve);
@@ -282,7 +296,7 @@ function startPolling() {
   if (state.pollTimer) clearInterval(state.pollTimer);
   state.pollTimer = setInterval(async () => {
     try {
-      const res = await fetch(`data/meta.json?t=${Date.now()}`, { cache: "no-store" });
+      const res = await fetch(dataUrl("meta.json", { bust: true }), { cache: "no-store" });
       if (!res.ok) return;
       const meta = await res.json();
       if (state.lastMeta && meta.generated_at !== state.lastMeta) {
