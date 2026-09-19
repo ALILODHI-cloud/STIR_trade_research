@@ -1,0 +1,315 @@
+{
+  "asof": "2026-09-18",
+  "ytd_session": "2026-01-02",
+  "twoweek_session": "2026-09-04",
+  "end2026": {
+    "asof": "2026-09-18",
+    "spot": {
+      "SOFR": 3.85,
+      "SONIA": 3.7303,
+      "ECB_DFR": 2.5,
+      "EFFR": 3.88
+    },
+    "z26_rate": {
+      "SOFR": 4.325000000000003,
+      "EURIBOR": 3.049999999999997,
+      "SONIA": 4.25
+    },
+    "z26_minus_spot_bp": {
+      "SOFR_vs_SOFR": 47.5,
+      "SONIA_vs_SONIA": 52.0,
+      "EURIBOR_Z26_vs_ECB_DFR": 55.0
+    },
+    "notes": "Z26 is the 3M forward rate for the Dec-26 IMM quarter, not an overnight print on 31 Dec. SOFR/SONIA comparisons use the matching overnight fixing; Euribor is compared to ECB DFR as policy context plus the live front future.",
+    "euribor_front": {
+      "contract": "Z26",
+      "rate": 3.049999999999997,
+      "z26_minus_front_bp": 0.0
+    },
+    "euribor_expired_U26": {
+      "last_session": "2026-09-14",
+      "rate": 2.664000000000001,
+      "z26_minus_U26_bp": 38.6
+    }
+  },
+  "top_movers": [
+    {
+      "curve": "EURIBOR",
+      "symbol": "IMU27",
+      "contract": "U27",
+      "rate_from": 3.114999999999995,
+      "rate_to": 3.5849999999999937,
+      "rate_chg_bp": 47.0,
+      "price_chg": -0.47
+    },
+    {
+      "curve": "EURIBOR",
+      "symbol": "IMZ27",
+      "contract": "Z27",
+      "rate_from": 3.094999999999999,
+      "rate_to": 3.5649999999999977,
+      "rate_chg_bp": 47.0,
+      "price_chg": -0.47
+    },
+    {
+      "curve": "EURIBOR",
+      "symbol": "IMH28",
+      "contract": "H28",
+      "rate_from": 3.075000000000003,
+      "rate_to": 3.530000000000001,
+      "rate_chg_bp": 45.5,
+      "price_chg": -0.455
+    },
+    {
+      "curve": "EURIBOR",
+      "symbol": "IMM27",
+      "contract": "M27",
+      "rate_from": 3.094999999999999,
+      "rate_to": 3.5400000000000063,
+      "rate_chg_bp": 44.5,
+      "price_chg": -0.445
+    },
+    {
+      "curve": "SOFR",
+      "symbol": "SQM27",
+      "contract": "M27",
+      "rate_from": 4.284999999999997,
+      "rate_to": 4.715000000000003,
+      "rate_chg_bp": 43.0,
+      "price_chg": -0.43
+    },
+    {
+      "curve": "SONIA",
+      "symbol": "J8U27",
+      "contract": "U27",
+      "rate_from": 4.450000000000003,
+      "rate_to": 4.879999999999996,
+      "rate_chg_bp": 43.0,
+      "price_chg": -0.43
+    },
+    {
+      "curve": "SOFR",
+      "symbol": "SQU27",
+      "contract": "U27",
+      "rate_from": 4.310000000000002,
+      "rate_to": 4.739999999999995,
+      "rate_chg_bp": 43.0,
+      "price_chg": -0.43
+    },
+    {
+      "curve": "EURIBOR",
+      "symbol": "IMM28",
+      "contract": "M28",
+      "rate_from": 3.069999999999993,
+      "rate_to": 3.4950000000000045,
+      "rate_chg_bp": 42.5,
+      "price_chg": -0.425
+    },
+    {
+      "curve": "SONIA",
+      "symbol": "J8Z27",
+      "contract": "Z27",
+      "rate_from": 4.439999999999998,
+      "rate_to": 4.859999999999999,
+      "rate_chg_bp": 42.0,
+      "price_chg": -0.42
+    },
+    {
+      "curve": "SOFR",
+      "symbol": "SQZ27",
+      "contract": "Z27",
+      "rate_from": 4.290000000000006,
+      "rate_to": 4.709999999999994,
+      "rate_chg_bp": 42.0,
+      "price_chg": -0.42
+    }
+  ],
+  "euribor_inversion": {
+    "asof": "2026-09-18",
+    "z27_rate": 3.5649999999999977,
+    "z28_rate": 3.4549999999999983,
+    "spread_z27_minus_z28_bp": 10.999999999999943,
+    "ytd_start": "2026-01-02",
+    "spread_at_ytd_bp": -25.0,
+    "spread_2w_ago_bp": 1.0000000000005116,
+    "days_inverted_ytd": 48,
+    "sessions_ytd": 183,
+    "recent_turn": "2026-08-27",
+    "max_spread_ytd_bp": 14.000000000000057,
+    "min_spread_ytd_bp": -25.0,
+    "terminal_contract_asof": "U27",
+    "terminal_rate_asof": 3.5849999999999937,
+    "terminal_contract_ytd": "Z28",
+    "terminal_rate_ytd": 2.644999999999996,
+    "terminal_contract_twoweek": "U27",
+    "terminal_rate_twoweek": 3.114999999999995
+  },
+  "strips": {
+    "SOFR": [
+      {
+        "contract": "U26",
+        "price": 95.9975,
+        "rate": 4.002499999999998
+      },
+      {
+        "contract": "V26",
+        "price": 95.86,
+        "rate": 4.140000000000001
+      },
+      {
+        "contract": "X26",
+        "price": 95.765,
+        "rate": 4.234999999999999
+      },
+      {
+        "contract": "Z26",
+        "price": 95.675,
+        "rate": 4.325000000000003
+      },
+      {
+        "contract": "H27",
+        "price": 95.415,
+        "rate": 4.584999999999994
+      },
+      {
+        "contract": "M27",
+        "price": 95.285,
+        "rate": 4.715000000000003
+      },
+      {
+        "contract": "U27",
+        "price": 95.26,
+        "rate": 4.739999999999995
+      },
+      {
+        "contract": "Z27",
+        "price": 95.29,
+        "rate": 4.709999999999994
+      },
+      {
+        "contract": "H28",
+        "price": 95.33,
+        "rate": 4.670000000000002
+      },
+      {
+        "contract": "M28",
+        "price": 95.365,
+        "rate": 4.635000000000005
+      },
+      {
+        "contract": "U28",
+        "price": 95.395,
+        "rate": 4.605000000000004
+      },
+      {
+        "contract": "Z28",
+        "price": 95.425,
+        "rate": 4.575000000000003
+      }
+    ],
+    "EURIBOR": [
+      {
+        "contract": "Z26",
+        "price": 96.95,
+        "rate": 3.049999999999997
+      },
+      {
+        "contract": "H27",
+        "price": 96.62,
+        "rate": 3.3799999999999955
+      },
+      {
+        "contract": "M27",
+        "price": 96.46,
+        "rate": 3.5400000000000063
+      },
+      {
+        "contract": "U27",
+        "price": 96.415,
+        "rate": 3.5849999999999937
+      },
+      {
+        "contract": "Z27",
+        "price": 96.435,
+        "rate": 3.5649999999999977
+      },
+      {
+        "contract": "H28",
+        "price": 96.47,
+        "rate": 3.530000000000001
+      },
+      {
+        "contract": "M28",
+        "price": 96.505,
+        "rate": 3.4950000000000045
+      },
+      {
+        "contract": "U28",
+        "price": 96.53,
+        "rate": 3.469999999999999
+      },
+      {
+        "contract": "Z28",
+        "price": 96.545,
+        "rate": 3.4549999999999983
+      }
+    ],
+    "SONIA": [
+      {
+        "contract": "U26",
+        "price": 96.15,
+        "rate": 3.8499999999999934
+      },
+      {
+        "contract": "Z26",
+        "price": 95.75,
+        "rate": 4.25
+      },
+      {
+        "contract": "H27",
+        "price": 95.37,
+        "rate": 4.629999999999996
+      },
+      {
+        "contract": "M27",
+        "price": 95.18,
+        "rate": 4.819999999999993
+      },
+      {
+        "contract": "U27",
+        "price": 95.12,
+        "rate": 4.879999999999996
+      },
+      {
+        "contract": "Z27",
+        "price": 95.14,
+        "rate": 4.859999999999999
+      },
+      {
+        "contract": "H28",
+        "price": 95.185,
+        "rate": 4.814999999999998
+      },
+      {
+        "contract": "M28",
+        "price": 95.23,
+        "rate": 4.769999999999996
+      },
+      {
+        "contract": "U28",
+        "price": 95.26,
+        "rate": 4.739999999999995
+      },
+      {
+        "contract": "Z28",
+        "price": 95.275,
+        "rate": 4.724999999999994
+      }
+    ]
+  },
+  "artifacts": {
+    "note": "research/notes/stir_curve_snapshot_2026-09-18.md",
+    "interactive": "research/notes/stir_curves_ytd.html",
+    "latest_html": "research/notes/stir_curves_latest.html"
+  }
+}
