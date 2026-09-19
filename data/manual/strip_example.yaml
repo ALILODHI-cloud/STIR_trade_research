@@ -1,0 +1,12 @@
+# Paste a futures strip here when the data hosts are blocked.
+# Prices are quoted prices (100 minus rate), not rates.
+asof: 2026-09-18
+root: SR3
+source: "paste from terminal - replace with your own settles"
+contracts:
+  SR3Z6: 96.000
+  SR3H7: 96.250
+  SR3M7: 96.400
+  SR3U7: 96.450
+  SR3Z7: 96.440
+  SR3H8: 96.400
