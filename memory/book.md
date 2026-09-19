@@ -30,8 +30,11 @@ SOFR, SONIA, ESTR/Euribor, TONA, CORRA, AUD/NZD bank bills.
 - [ ] Confirm the desk's fly sign convention.
 - [ ] Decide scope of position tracking (ideas only, or full live book).
 - [ ] Decide whether to track fills and running P&L.
-- [ ] GitHub App not installed on the repo — pushes are blocked, so nothing
-      here is durable yet. This is the highest-priority open item.
+- [x] RESOLVED 2026-09-19 — GitHub App installed; pushes work. Branch
+      `claude/hopeful-babbage-ahkapg` is live on the remote and this memory
+      is durable. One caveat: the hook only loads for sessions that clone a
+      branch containing it, so merging to the default branch is what makes it
+      apply everywhere.
 
 ## Decision log
 
@@ -41,3 +44,8 @@ Newest last. One line each: date, decision, why.
   does not survive across sessions and gets compacted within them.
 - 2026-09-19 — Market levels never come from model memory. Training data ends
   ~May 2026; stale levels that look confident are worse than no levels.
+- 2026-09-19 — Memory lives in `memory/` and is loaded by a SessionStart hook,
+  not held by the agent. Confirmed working on a session resume.
+- 2026-09-19 — Subagents start cold and inherit none of this memory. Use them
+  only for parallel, self-contained work (e.g. one PDF each); never for
+  judgement that depends on the book.
