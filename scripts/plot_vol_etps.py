@@ -23,6 +23,7 @@ TWO THINGS WILL RUIN THIS CHART IF THE INPUT IS WRONG:
 """
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -114,78 +115,100 @@ def _mark_leverage_change(ax, lo, hi):
                 fontsize=8, color=MUTED, va="bottom", ha="left")
 
 
-def plot_all(uvxy: pd.Series, svxy: pd.Series, outdir: Path) -> list[Path]:
+PANELS = ("dual", "log", "indexed")
+
+
+def plot_all(uvxy: pd.Series, svxy: pd.Series, outdir: Path,
+             panels: tuple[str, ...] = ("dual",)) -> list[Path]:
+    """Render the requested panels. Defaults to the dual-axis view."""
+    unknown = [p for p in panels if p not in PANELS]
+    if unknown:
+        raise ValueError(f"unknown panel(s) {unknown}; choose from {list(PANELS)}")
     outdir.mkdir(parents=True, exist_ok=True)
     lo, hi = min(uvxy.index[0], svxy.index[0]), max(uvxy.index[-1], svxy.index[-1])
     written = []
 
-    # --- 1. dual axis, as requested -------------------------------------
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax2 = ax.twinx()
-    ax.plot(uvxy.index, uvxy.values, color=COLORS["UVXY"], linewidth=2, label="UVXY (left)")
-    ax2.plot(svxy.index, svxy.values, color=COLORS["SVXY"], linewidth=2, label="SVXY (right)")
-    ax.set_ylabel("UVXY", color=COLORS["UVXY"], fontsize=10)
-    ax2.set_ylabel("SVXY", color=COLORS["SVXY"], fontsize=10)
-    ax.tick_params(axis="y", colors=COLORS["UVXY"])
-    ax2.tick_params(axis="y", colors=COLORS["SVXY"])
-    _style(ax)
-    ax2.spines["top"].set_visible(False)
-    _mark_leverage_change(ax, lo, hi)
-    ax.set_title("UVXY and SVXY — separate y-axes", color=INK, fontsize=13, loc="left", pad=14)
-    fig.text(0.125, 0.90, "Two scales: the apparent co-movement is an artefact of axis choice.",
-             fontsize=9, color=MUTED)
-    lines = ax.get_lines() + ax2.get_lines()
-    ax.legend(lines, [ln.get_label() for ln in lines], frameon=False,
-              loc="upper right", fontsize=9, labelcolor=INK)
-    fig.tight_layout()
-    p = outdir / "uvxy_svxy_dual_axis.png"
-    fig.savefig(p, dpi=150, facecolor="white")
-    plt.close(fig)
-    written.append(p)
+    # --- 1. dual axis ---------------------------------------------------
+    if "dual" in panels:
+     fig, ax = plt.subplots(figsize=(12, 6))
+     ax2 = ax.twinx()
+     (line_uvxy,) = ax.plot(uvxy.index, uvxy.values, color=COLORS["UVXY"],
+                            linewidth=2, label="UVXY (left)")
+     (line_svxy,) = ax2.plot(svxy.index, svxy.values, color=COLORS["SVXY"],
+                             linewidth=2, label="SVXY (right)")
+     ax.set_ylabel("UVXY", color=COLORS["UVXY"], fontsize=10)
+     ax2.set_ylabel("SVXY", color=COLORS["SVXY"], fontsize=10)
+     ax.tick_params(axis="y", colors=COLORS["UVXY"])
+     ax2.tick_params(axis="y", colors=COLORS["SVXY"])
+     _style(ax)
+     ax2.spines["top"].set_visible(False)
+     _mark_leverage_change(ax, lo, hi)
+     ax.set_title("UVXY and SVXY — separate y-axes", color=INK, fontsize=13, loc="left", pad=14)
+     fig.text(0.125, 0.90, "Two scales: the apparent co-movement is an artefact of axis choice.",
+              fontsize=9, color=MUTED)
+     # Explicit handles: ax.get_lines() also returns the Feb-2018 axvline,
+     # which then appeared in the legend as "_child1".
+     ax.legend([line_uvxy, line_svxy],
+               [line_uvxy.get_label(), line_svxy.get_label()],
+               frameon=False, loc="upper right", fontsize=9, labelcolor=INK)
+     fig.tight_layout()
+     p = outdir / "uvxy_svxy_dual_axis.png"
+     fig.savefig(p, dpi=150, facecolor="white")
+     plt.close(fig)
+     written.append(p)
 
     # --- 2. shared log axis ---------------------------------------------
-    fig, ax = plt.subplots(figsize=(12, 6))
-    for name, s in (("UVXY", uvxy), ("SVXY", svxy)):
-        ax.plot(s.index, s.values, color=COLORS[name], linewidth=2, label=name)
-        ax.annotate(name, xy=(s.index[-1], s.iloc[-1]), xytext=(8, 0),
-                    textcoords="offset points", color=COLORS[name],
-                    fontsize=10, va="center", fontweight="bold")
-    ax.set_yscale("log")
-    ax.set_ylabel("Price (log scale, USD)", color=MUTED, fontsize=10)
-    _style(ax)
-    _mark_leverage_change(ax, lo, hi)
-    ax.set_title("UVXY and SVXY — one shared log axis", color=INK, fontsize=13, loc="left", pad=14)
-    fig.text(0.125, 0.90, "Equal vertical distance = equal percentage move. The honest view.",
-             fontsize=9, color=MUTED)
-    ax.legend(frameon=False, loc="upper right", fontsize=9, labelcolor=INK)
-    fig.tight_layout()
-    p = outdir / "uvxy_svxy_log.png"
-    fig.savefig(p, dpi=150, facecolor="white")
-    plt.close(fig)
-    written.append(p)
+    if "log" in panels:
+     fig, ax = plt.subplots(figsize=(12, 6))
+     for name, s in (("UVXY", uvxy), ("SVXY", svxy)):
+         ax.plot(s.index, s.values, color=COLORS[name], linewidth=2, label=name)
+         ax.annotate(name, xy=(s.index[-1], s.iloc[-1]), xytext=(8, 0),
+                     textcoords="offset points", color=COLORS[name],
+                     fontsize=10, va="center", fontweight="bold")
+     ax.set_yscale("log")
+     ax.set_ylabel("Price (log scale, USD)", color=MUTED, fontsize=10)
+     _style(ax)
+     _mark_leverage_change(ax, lo, hi)
+     ax.set_title("UVXY and SVXY — one shared log axis", color=INK, fontsize=13, loc="left", pad=14)
+     fig.text(0.125, 0.90, "Equal vertical distance = equal percentage move. The honest view.",
+              fontsize=9, color=MUTED)
+     ax.legend(frameon=False, loc="upper right", fontsize=9, labelcolor=INK)
+     fig.tight_layout()
+     p = outdir / "uvxy_svxy_log.png"
+     fig.savefig(p, dpi=150, facecolor="white")
+     plt.close(fig)
+     written.append(p)
 
     # --- 3. indexed to 100 ----------------------------------------------
-    fig, ax = plt.subplots(figsize=(12, 6))
-    for name, s in (("UVXY", uvxy), ("SVXY", svxy)):
-        idx = s / s.iloc[0] * 100.0
-        ax.plot(idx.index, idx.values, color=COLORS[name], linewidth=2, label=name)
-    ax.set_yscale("log")
-    ax.axhline(100, color=MUTED, linewidth=1, linestyle=":")
-    ax.set_ylabel(f"Indexed to 100 at {uvxy.index[0].date()} (log)", color=MUTED, fontsize=10)
-    _style(ax)
-    _mark_leverage_change(ax, lo, hi)
-    ax.set_title("UVXY and SVXY — total return from a common base",
-                 color=INK, fontsize=13, loc="left", pad=14)
-    ax.legend(frameon=False, loc="upper right", fontsize=9, labelcolor=INK)
-    fig.tight_layout()
-    p = outdir / "uvxy_svxy_indexed.png"
-    fig.savefig(p, dpi=150, facecolor="white")
-    plt.close(fig)
-    written.append(p)
+    if "indexed" in panels:
+     fig, ax = plt.subplots(figsize=(12, 6))
+     for name, s in (("UVXY", uvxy), ("SVXY", svxy)):
+         idx = s / s.iloc[0] * 100.0
+         ax.plot(idx.index, idx.values, color=COLORS[name], linewidth=2, label=name)
+     ax.set_yscale("log")
+     ax.axhline(100, color=MUTED, linewidth=1, linestyle=":")
+     ax.set_ylabel(f"Indexed to 100 at {uvxy.index[0].date()} (log)", color=MUTED, fontsize=10)
+     _style(ax)
+     _mark_leverage_change(ax, lo, hi)
+     ax.set_title("UVXY and SVXY — total return from a common base",
+                  color=INK, fontsize=13, loc="left", pad=14)
+     ax.legend(frameon=False, loc="upper right", fontsize=9, labelcolor=INK)
+     fig.tight_layout()
+     p = outdir / "uvxy_svxy_indexed.png"
+     fig.savefig(p, dpi=150, facecolor="white")
+     plt.close(fig)
+     written.append(p)
     return written
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--panels", default="dual",
+                    help=f"comma-separated, any of {list(PANELS)}, or 'all' (default: dual)")
+    args = ap.parse_args()
+    panels = tuple(PANELS) if args.panels == "all" else tuple(
+        p.strip() for p in args.panels.split(",") if p.strip())
+
     try:
         uvxy, svxy = load("UVXY"), load("SVXY")
     except DataMissing as exc:
@@ -212,7 +235,7 @@ def main() -> int:
         print("No data on or after 2013-01-01.")
         return 1
 
-    written = plot_all(uvxy, svxy, OUT)
+    written = plot_all(uvxy, svxy, OUT, panels=panels)
     print("\nWritten:")
     for p in written:
         print(f"  {p.relative_to(ROOT)}")
