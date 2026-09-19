@@ -12,9 +12,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from lib.stir import data, futures as fut, ois
+from lib.stir import data, ois
+from lib.stir import futures as fut
 from lib.stir.conventions import convention, parse_contract
-
 
 # Illustrative FOMC effective dates (the day after each decision).
 FOMC_EFFECTIVE = [
@@ -32,17 +32,18 @@ def main() -> None:
     print("SR3 strip (ILLUSTRATIVE DATA - not market levels)")
     print("=" * 66)
     print(f"{'contract':>10} {'price':>9} {'rate %':>9} {'expiry':>12}")
-    for s, p, r in zip(strip.symbols, strip.prices, strip.rates):
+    for s, p, r in zip(strip.symbols, strip.prices, strip.rates, strict=True):
         _, expiry = parse_contract(s, reference=date(2026, 9, 18))
         print(f"{s:>10} {p:>9.3f} {r:>9.3f} {expiry!s:>12}")
 
     print("\nadjacent calendar spreads (rate space, bp; +ve = inverted)")
-    for a, b, v in zip(strip.symbols, strip.symbols[1:], strip.sequential_spreads()):
+    for a, b, v in zip(strip.symbols, strip.symbols[1:],
+                       strip.sequential_spreads(), strict=False):
         print(f"  {a}/{b:<8} {v:>8.1f}   DV01 {conv.dv01:>6.2f}/contract/leg")
 
     print("\nadjacent flies (rate space, bp; +ve = body below the wings' line)")
     for a, b, c, v in zip(strip.symbols, strip.symbols[1:], strip.symbols[2:],
-                          strip.sequential_flies()):
+                          strip.sequential_flies(), strict=False):
         print(f"  {a}/{b}/{c:<8} {v:>8.1f}")
 
     # --- what the meeting-dated curve implies -------------------------------
@@ -53,7 +54,7 @@ def main() -> None:
     #     exactly - no solving required.
     spot = 4.00  # illustrative prevailing SOFR
     valuation = date(2026, 9, 18)
-    dated_forwards = dict(zip(FOMC_EFFECTIVE, [3.88, 3.70, 3.58, 3.50, 3.46, 3.44]))
+    dated_forwards = dict(zip(FOMC_EFFECTIVE, [3.88, 3.70, 3.58, 3.50, 3.46, 3.44], strict=True))
     steps = ois.steps_from_dated_forwards(dated_forwards, spot)
     curve = ois.MeetingCurve(valuation, spot, conv.day_basis, steps)
 

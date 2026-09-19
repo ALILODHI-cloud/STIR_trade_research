@@ -4,7 +4,6 @@ import pytest
 
 from lib.stir import ois
 
-
 MEETINGS = [date(2026, 10, 30), date(2026, 12, 11), date(2027, 1, 29), date(2027, 3, 19)]
 VAL = date(2026, 9, 21)
 

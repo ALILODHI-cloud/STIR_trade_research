@@ -21,6 +21,24 @@ what breaks it — not building a production pricing system.
   book's analysis; don't reproduce them wholesale.
 - The container is ephemeral. Anything worth keeping gets committed.
 
+## Memory — read first, write continuously
+
+The agent has no recall between sessions and its context gets compacted
+within them. `memory/` is the only thing that persists, and the SessionStart
+hook (`.claude/hooks/session-start.sh`) prints it into context automatically.
+
+- `memory/book.md` — standing facts, agreed conventions, open questions, and
+  a decision log. Anything true across sessions.
+- `memory/trades.yaml` — the trade ledger. Schema is documented in the file.
+- `memory/sessions/YYYY-MM-DD.md` — what happened, at a level that makes it
+  reconstructable. Recall, not minutes.
+
+**Write as you go, not at the end.** Sessions get truncated and containers
+die without warning; a memory written at the end is a memory that is
+sometimes never written. When the user says something that matters beyond the
+current message — a level, a position, a preference, a decision — put it in
+`memory/` in that same turn, then carry on.
+
 ## Data
 
 This session's egress policy blocks the public data hosts (FRED, CME,

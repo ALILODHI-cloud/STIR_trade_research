@@ -9,7 +9,6 @@ change to call sites.
 from __future__ import annotations
 
 import io
-import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -129,7 +128,7 @@ def load_manual(name: str) -> dict:
     raise DataUnavailable(f"No manual file {name!r} in data/manual/. Available: {available}")
 
 
-def manual_strip(name: str) -> "tuple[list[str], list[float]]":
+def manual_strip(name: str) -> tuple[list[str], list[float]]:
     """Read a pasted strip: {asof, root, contracts: {SYMBOL: price}}."""
     blob = load_manual(name)
     contracts = blob["contracts"]

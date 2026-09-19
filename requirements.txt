@@ -8,3 +8,4 @@ pytest
 requests
 openpyxl
 pdfplumber
+ruff

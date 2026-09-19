@@ -12,7 +12,7 @@ daily compounding gives.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import date
 
 import numpy as np
 from scipy.optimize import brentq

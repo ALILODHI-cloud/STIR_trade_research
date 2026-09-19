@@ -1,0 +1,20 @@
+# Trade ledger. Append as trades are discussed or put on.
+# Nothing here yet — add the first entry when the first idea is raised.
+#
+# Schema (all fields optional except id, date, market, structure, status):
+#   id:         short unique handle, e.g. usd-z6h7m7-fly
+#   date:       YYYY-MM-DD the idea was raised
+#   market:     USD | GBP | EUR | JPY | CAD | AUD | NZD
+#   structure:  human description, e.g. "long SR3Z6/H7/M7 fly"
+#   direction:  long | short
+#   status:     idea | live | closed | rejected
+#   entry:      {date: , level_bp: , size_lots: , dv01: }
+#   exit:       {date: , level_bp: , pnl: }
+#   target_bp:  level at which the trade is taken off
+#   stop_bp:    level at which the thesis is wrong
+#   thesis:     one line, falsifiable
+#   source:     own | desk | pdf:<filename>
+#   note:       research/notes/<file>.md
+#   levels_source: where the entry level came from (file, paste, PDF page)
+
+trades: []
