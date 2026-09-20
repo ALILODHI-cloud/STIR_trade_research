@@ -38,6 +38,19 @@ def main() -> None:
         'await fetch(new URL("api/rebuild", new URL(BASE, location.origin)).toString(), {\n        method: "POST",\n      });',
         "/* bundled: no rebuild API */",
     )
+    js_patched = re.sub(
+        r"function startPolling\(\) \{.*?\n\}",
+        "function startPolling() { /* bundled: no polling */ }",
+        js_patched,
+        count=1,
+        flags=re.S,
+    )
+    # Mark live pill as static
+    js_patched = js_patched.replace(
+        'el("livePill").classList.remove("stale");',
+        'el("livePill").classList.remove("stale"); el("livePill").title = "bundled snapshot";',
+        1,
+    )
 
     boot = (
         f'<script type="application/json" id="embedded-curves">{curves}</script>\n'
