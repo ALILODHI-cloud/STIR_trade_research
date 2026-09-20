@@ -74,3 +74,9 @@ Newest last. One line each: date, decision, why.
 - 2026-09-19 — Owner asked for end-2026 priced change + YTD interactive curves
   + 2w movers + Euribor Z27/Z28 inversion check; snapshot asof 2026-09-18 in
   `research/notes/stir_curve_snapshot_2026-09-18.md`.
+
+## Dashboard hosting (2026-09-20)
+
+- Prefer jsDelivr `@gh-pages` or pinned SHA for a public static link; do not inject absolute Pages `<base href>`.
+- github.io needs a one-time Pages enable (Settings → Pages → gh-pages); agent token cannot enable it.
+- Cloudflare quick tunnels are ephemeral — never the only share link.
