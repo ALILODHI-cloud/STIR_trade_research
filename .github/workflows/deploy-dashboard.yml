@@ -10,12 +10,14 @@ on:
       - "scripts/refresh_fred_spots.py"
       - ".github/workflows/deploy-dashboard.yml"
   schedule:
-    # Weekdays 21:30 UTC ≈ after US settle
     - cron: "30 21 * * 1-5"
   workflow_dispatch:
 
+# Dual publish:
+# 1) gh-pages branch (enable Pages → Deploy from a branch → gh-pages /)
+# 2) GitHub Actions Pages (enable Pages → Source: GitHub Actions)
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -24,7 +26,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,13 +45,40 @@ jobs:
       - name: Build dashboard JSON
         run: python3 scripts/build_dashboard_data.py
 
+      # Project Pages need this base href so assets resolve under /STIR_trade_research/
+      - name: Inject Pages base href
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("research/dashboard/index.html")
+          t = p.read_text()
+          if '<base ' not in t:
+              t = t.replace(
+                  "<head>\n",
+                  '<head>\n  <base href="/STIR_trade_research/" />\n',
+                  1,
+              )
+              p.write_text(t)
+          print("base href injected")
+          PY
+
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: research/dashboard
+          force_orphan: true
+          full_commit_message: "Deploy STIR dashboard"
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: research/dashboard
+        continue-on-error: true
 
-  deploy:
-    needs: build
+  deploy-actions-pages:
+    needs: build-and-publish
+    if: success()
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -57,3 +86,4 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true

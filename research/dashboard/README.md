@@ -1,32 +1,30 @@
 # STIR strips dashboard
 
-Live tabbed view of Euribor / SOFR / SONIA 3M futures strips.
+## Open it now
 
-## Public URL (any device)
+**Fresh Cloudflare link** (works from phone/laptop; only while the cloud agent VM is up — the old `*.trycloudflare.com` URLs die):
 
-**Permanent (after Pages is enabled + this workflow runs):**  
-https://alilodhi-cloud.github.io/STIR_trade_research/
+Ask the agent for the current tunnel, or check the latest chat message.
 
-One-time setup: repo **Settings → Pages → Source: GitHub Actions**.  
-Then merge this branch / run the **Deploy STIR dashboard** workflow.
+**Permanent URL** (any device, auto-updates weekdays):
 
-Auto-updates: weekday schedule at 21:30 UTC (refreshes FRED spots + rebuilds
-the JSON from the latest committed futures panel). Trigger manually via
-Actions → Deploy STIR dashboard → Run workflow.
+1. Open https://github.com/ALILODHI-cloud/STIR_trade_research/settings/pages
+2. Source: **Deploy from a branch**
+3. Branch: **gh-pages** / root → Save
+4. Site: https://alilodhi-cloud.github.io/STIR_trade_research/
 
-**Ephemeral tunnel** (only while the cloud agent VM is up): ask the agent for
-the current `*.trycloudflare.com` link.
+The GitHub Actions workflow publishes `research/dashboard` to `gh-pages` and
+refreshes FRED spots on weekdays at 21:30 UTC. Manual: Actions → Deploy STIR
+dashboard → Run workflow.
+
+## Why links failed before
+
+- Cloudflare quick tunnels expire; old URLs return errors.
+- `github.io` 404s until Pages is enabled in repo Settings (one-time).
 
 ## Local
 
 ```bash
 python3 scripts/build_dashboard_data.py
-python3 scripts/serve_dashboard.py   # http://127.0.0.1:8765/
+python3 scripts/serve_dashboard.py
 ```
-
-## Features
-
-- Tabs per curve
-- Latest curve fixed (amber); historical overlay via slider (teal)
-- Click a contract: cumul vs policy at latest vs slider date, and the delta
-- Client polls `data/meta.json` every 15s so a new deploy shows up without refresh
