@@ -1,0 +1,15 @@
+{
+  "asof": "2026-09-18",
+  "trade": "short Z28\u2212Z27 (receive Z27 / pay Z28)",
+  "z27": 3.5649999999999977,
+  "z28": 3.4549999999999983,
+  "spread_bp": -10.999999999999943,
+  "ytd_min": -14.000000000000057,
+  "ytd_max": 25.0,
+  "room_to_min_bp": 3.0000000000001137,
+  "steepener_to_zero_bp": 10.999999999999943,
+  "post_ecb_short_pnl": -0.0,
+  "beta_z28_on_u27_since_aug": 0.6918635978754438,
+  "beta_z28_on_z27_since_aug": 0.7289868689680824,
+  "beta_u27_on_z26_since_aug": 1.823375714932234
+}
