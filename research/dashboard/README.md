@@ -2,13 +2,14 @@
 
 ## Open it now
 
-Use either Cloudflare URL (same server; works from phone/laptop while this
-cloud agent is up):
+Cloudflare quick tunnel (works from phone/laptop while this cloud agent is up;
+URL changes if the tunnel restarts):
 
-- https://selected-connection-would-teaches.trycloudflare.com/
-- https://selected-connection-would-teaches.trycloudflare.com/stir-strips.html
+- https://representing-depot-misc-cpu.trycloudflare.com/
+- https://representing-depot-misc-cpu.trycloudflare.com/stir-strips.html
 
 `stir-strips.html` is a single-file bundle (CSS/JS/curves inlined).
+As-of strip data: **2026-09-18**.
 
 ## Permanent hosting
 
