@@ -22,14 +22,16 @@ const state = {
 
 const el = (id) => document.getElementById(id);
 
+/** Directory of this page — works on /, /repo/, CDN .../index.html, etc. */
 const BASE = (() => {
-  const parts = location.pathname.split("/").filter(Boolean);
-  if (parts[0] === "STIR_trade_research") return "/STIR_trade_research/";
-  return "./";
+  const path = location.pathname;
+  if (path.endsWith("/")) return path;
+  if (/\.html?$/i.test(path)) return path.replace(/[^/]+$/, "");
+  return `${path}/`;
 })();
 
 function dataUrl(file, { bust = false } = {}) {
-  const u = new URL(`data/${file}`, new URL(BASE, location.href));
+  const u = new URL(`data/${file}`, new URL(BASE, location.origin));
   if (bust) u.searchParams.set("t", String(Date.now()));
   return u.toString();
 }

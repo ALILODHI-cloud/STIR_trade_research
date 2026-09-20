@@ -45,22 +45,10 @@ jobs:
       - name: Build dashboard JSON
         run: python3 scripts/build_dashboard_data.py
 
-      # Project Pages need this base href so assets resolve under /STIR_trade_research/
-      - name: Inject Pages base href
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("research/dashboard/index.html")
-          t = p.read_text()
-          if '<base ' not in t:
-              t = t.replace(
-                  "<head>\n",
-                  '<head>\n  <base href="/STIR_trade_research/" />\n',
-                  1,
-              )
-              p.write_text(t)
-          print("base href injected")
-          PY
+      # Keep relative asset URLs (no <base href>). Absolute /STIR_trade_research/
+      # bases break Cloudflare tunnels, jsDelivr, and raw.githack mirrors.
+      # GitHub project Pages still resolve styles.css / data/* relative to the
+      # site root at /STIR_trade_research/ once Pages is enabled.
 
       - name: Publish to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
