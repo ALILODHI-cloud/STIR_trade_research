@@ -102,10 +102,10 @@ function pairContracts() {
   return contractKey(a) <= contractKey(b) ? [a, b] : [b, a];
 }
 
-/** Rate spread front − back in bp (positive = inverted). */
+/** Rate spread back − front in bp (desk convention). Positive = steep. */
 function slopeBp(rates, front, back) {
   if (!rates || rates[front] == null || rates[back] == null) return null;
-  return (rates[front] - rates[back]) * 100;
+  return (rates[back] - rates[front]) * 100;
 }
 
 function setTab(curve) {
@@ -185,8 +185,8 @@ function updateSide() {
     if (diff == null) note = "Missing rate on one of the dates.";
     else if (Math.abs(diff) < 1e-9) note = "Same slope as on the historical date.";
     else if (diff > 0)
-      note = "Latest is more inverted / less upward-sloping than the historical date.";
-    else note = "Latest is less inverted / more upward-sloping than the historical date.";
+      note = "Latest is steeper / less inverted than the historical date (back − front up).";
+    else note = "Latest is flatter / more inverted than the historical date (back − front down).";
     el("slopeNote").textContent = note;
     return;
   }
@@ -385,8 +385,8 @@ function renderSlopeHistory() {
   }
 
   const [front, back] = pair;
-  el("slopeTitle").textContent = `${monthLabel(front)} − ${monthLabel(back)}`;
-  el("slopeSub").textContent = `Slope history (bp) · positive = inverted · vs latest ${c.asof}`;
+  el("slopeTitle").textContent = `${monthLabel(back)} − ${monthLabel(front)}`;
+  el("slopeSub").textContent = `Slope history (bp) · back − front · positive = steep · vs latest ${c.asof}`;
 
   const xs = [];
   const ys = [];

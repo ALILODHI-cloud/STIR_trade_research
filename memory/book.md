@@ -22,7 +22,9 @@ SOFR, SONIA, ESTR/Euribor, TONA, CORRA, AUD/NZD bank bills.
 
 - Fly sign: rate-space `(1,-2,1)`; positive = body rate below the line through
   the wings. NOT YET CONFIRMED against the owner's desk convention — ask.
-- Spread sign: rate space, front minus back; positive = inverted.
+- Spread / slope sign (CONFIRMED 2026-09-20): rate space **back − front**.
+  Positive = steep (back > front). Negative = inverted (back < front).
+  Flatten = spread falls. When already inverted, flatten further = invert more.
 - OIS steps keyed on policy *effective* dates, not announcement dates.
 
 ## Open items / unconfirmed
@@ -80,3 +82,5 @@ Newest last. One line each: date, decision, why.
 - Prefer jsDelivr `@gh-pages` or pinned SHA for a public static link; do not inject absolute Pages `<base href>`.
 - github.io needs a one-time Pages enable (Settings → Pages → gh-pages); agent token cannot enable it.
 - Cloudflare quick tunnels are ephemeral — never the only share link.
+
+- 2026-09-20 — Spread convention is back − front (not front − back). Flatten = spread down; on an inverted gap that means invert more.
