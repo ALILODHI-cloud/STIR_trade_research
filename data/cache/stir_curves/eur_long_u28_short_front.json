@@ -1,0 +1,10 @@
+{
+  "asof": "2026-09-18",
+  "u26_expired": "2026-09-14",
+  "u26_last": 2.664000000000001,
+  "structure": "long IMU28 / short front futures = short (U28-front) rate spread",
+  "U28_Z26_last": 42.00000000000017,
+  "U28_U26_last": 78.09999999999921,
+  "ytd_pct_U28_Z26": 87.97814207650273,
+  "ytd_pct_U28_U26": 100.0
+}
