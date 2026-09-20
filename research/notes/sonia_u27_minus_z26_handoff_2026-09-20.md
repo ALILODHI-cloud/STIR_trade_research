@@ -210,7 +210,7 @@ Optional cross: short SONIA U27−Z26 vs long Euribor U27−Z26 (GBP−EUR ~+9.5
 
 ---
 
-## 8. Suggested evaluation checklist for the other agent
+## 9. Suggested evaluation checklist for the other agent
 
 1. Confirm months: **Dec’26 vs Sep’27** (Z26 / U27), desk = back − front.
 2. Recompute last spread from CSV / raw settles; match **+63.0**.
