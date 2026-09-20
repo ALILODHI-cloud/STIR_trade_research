@@ -1,10 +1,19 @@
-/* STIR strip dashboard — tabs, dual curve, slider, click side panel */
+/* STIR strip dashboard — dual curve, two-point slope, month labels */
+
+const MONTHS = {
+  F: "Jan", G: "Feb", H: "Mar", J: "Apr", K: "May", M: "Jun",
+  N: "Jul", Q: "Aug", U: "Sep", V: "Oct", X: "Nov", Z: "Dec",
+};
+const MONTH_NUM = {
+  F: 1, G: 2, H: 3, J: 4, K: 5, M: 6,
+  N: 7, Q: 8, U: 9, V: 10, X: 11, Z: 12,
+};
 
 const state = {
   data: null,
   curve: "EURIBOR",
   sessionIdx: 0,
-  selected: null,
+  selected: [], // up to 2 contract codes, chronologically sorted when pair locked
   playing: false,
   playTimer: null,
   pollTimer: null,
@@ -14,7 +23,6 @@ const state = {
 const el = (id) => document.getElementById(id);
 
 const BASE = (() => {
-  // GitHub project Pages lives under /STIR_trade_research/
   const parts = location.pathname.split("/").filter(Boolean);
   if (parts[0] === "STIR_trade_research") return "/STIR_trade_research/";
   return "./";
@@ -26,11 +34,27 @@ function dataUrl(file, { bust = false } = {}) {
   return u.toString();
 }
 
-function bp(x) {
+function monthLabel(code) {
+  if (!code || code.length < 2) return code;
+  const m = code[0];
+  const yy = code.slice(1);
+  return `${MONTHS[m] || m} '${yy}`;
+}
+
+function contractKey(code) {
+  return 2000 + Number(code.slice(1)) + MONTH_NUM[code[0]] / 100;
+}
+
+function fmtBp(x) {
   if (x == null || Number.isNaN(x)) return "—";
-  const v = x * 100;
-  const sign = v > 0 ? "+" : "";
-  return `${sign}${v.toFixed(1)} bp`;
+  const sign = x > 0 ? "+" : "";
+  return `${sign}${x.toFixed(1)} bp`;
+}
+
+/** Format a rate-space differential (e.g. 0.47) as basis points. */
+function rateDiffBp(x) {
+  if (x == null || Number.isNaN(x)) return "—";
+  return fmtBp(x * 100);
 }
 
 function pct(x) {
@@ -41,6 +65,15 @@ function pct(x) {
 function signedClass(x) {
   if (x == null || Number.isNaN(x)) return "";
   return x >= 0 ? "pos" : "neg";
+}
+
+function labelsFor(contracts) {
+  return contracts.map(monthLabel);
+}
+
+function codeFromLabel(label, contracts) {
+  const i = labelsFor(contracts).indexOf(label);
+  return i >= 0 ? contracts[i] : null;
 }
 
 async function loadData({ bust = false } = {}) {
@@ -57,9 +90,25 @@ function currentCurve() {
   return state.data.curves[state.curve];
 }
 
+function histDate() {
+  return currentCurve().sessions[state.sessionIdx];
+}
+
+function pairContracts() {
+  if (state.selected.length < 2) return null;
+  const [a, b] = state.selected;
+  return contractKey(a) <= contractKey(b) ? [a, b] : [b, a];
+}
+
+/** Rate spread front − back in bp (positive = inverted). */
+function slopeBp(rates, front, back) {
+  if (!rates || rates[front] == null || rates[back] == null) return null;
+  return (rates[front] - rates[back]) * 100;
+}
+
 function setTab(curve) {
   state.curve = curve;
-  state.selected = null;
+  state.selected = [];
   document.querySelectorAll(".tab").forEach((t) => {
     const on = t.dataset.curve === curve;
     t.classList.toggle("active", on);
@@ -75,102 +124,142 @@ function setTab(curve) {
   state.sessionIdx = sessions.length - 1;
   el("sliderStart").textContent = sessions[0];
   el("sliderEnd").textContent = sessions[sessions.length - 1];
-  clearSide();
   render();
 }
 
-function histDate() {
-  return currentCurve().sessions[state.sessionIdx];
+function clearSelection() {
+  state.selected = [];
+  render();
 }
 
-function clearSide() {
-  el("sideTitle").textContent = "Click a point";
-  el("sideHint").classList.remove("hidden");
-  el("sideBody").classList.add("hidden");
+function onPointClick(labelOrCode) {
+  const c = currentCurve();
+  let code = c.contracts.includes(labelOrCode)
+    ? labelOrCode
+    : codeFromLabel(labelOrCode, c.contracts);
+  if (!code) return;
+
+  if (state.selected.includes(code)) {
+    state.selected = state.selected.filter((x) => x !== code);
+  } else if (state.selected.length >= 2) {
+    state.selected = [code];
+  } else {
+    state.selected = [...state.selected, code];
+  }
+  render();
 }
 
 function updateSide() {
   const c = currentCurve();
-  const contract = state.selected;
-  if (!contract) {
-    clearSide();
+  const hist = histDate();
+  const pair = pairContracts();
+
+  el("sideSingle").classList.add("hidden");
+  el("sidePair").classList.add("hidden");
+
+  if (pair) {
+    const [front, back] = pair;
+    const latestSlope = slopeBp(c.latest_rates, front, back);
+    const histSlope = slopeBp(c.rates[hist], front, back);
+    const diff =
+      latestSlope != null && histSlope != null ? latestSlope - histSlope : null;
+
+    el("sideHint").classList.add("hidden");
+    el("sidePair").classList.remove("hidden");
+    el("sideEyebrow").textContent = "Slope pair";
+    el("sideTitle").textContent = `${monthLabel(front)} → ${monthLabel(back)}`;
+    el("kvFront").textContent = `${monthLabel(front)} (${c.symbols[front]})`;
+    el("kvBack").textContent = `${monthLabel(back)} (${c.symbols[back]})`;
+    el("blkSlopeLatestDate").textContent = c.asof;
+    el("blkSlopeHistDate").textContent = hist;
+    el("mSlopeLatest").textContent = fmtBp(latestSlope);
+    el("mSlopeLatest").className = signedClass(latestSlope);
+    el("mSlopeHist").textContent = fmtBp(histSlope);
+    el("mSlopeHist").className = signedClass(histSlope);
+    el("mSlopeDiff").textContent = fmtBp(diff);
+    el("mSlopeDiff").className = signedClass(diff);
+
+    let note = "";
+    if (diff == null) note = "Missing rate on one of the dates.";
+    else if (Math.abs(diff) < 1e-9) note = "Same slope as on the historical date.";
+    else if (diff > 0)
+      note = "Latest is more inverted / less upward-sloping than the historical date.";
+    else note = "Latest is less inverted / more upward-sloping than the historical date.";
+    el("slopeNote").textContent = note;
     return;
   }
-  const asof = c.asof;
-  const hist = histDate();
-  const sym = c.symbols[contract];
 
-  const latestRate = c.latest_rates[contract];
-  const histRate = c.rates[hist]?.[contract];
-  const latestSpot = c.latest_spot;
-  const histSpot = c.spot[hist];
+  if (state.selected.length === 1) {
+    const contract = state.selected[0];
+    const latestRate = c.latest_rates[contract];
+    const histRate = c.rates[hist]?.[contract];
+    const latestSpot = c.latest_spot;
+    const histSpot = c.spot[hist];
+    const latestCumul =
+      latestRate != null && latestSpot != null ? latestRate - latestSpot : null;
+    const histCumul = histRate != null && histSpot != null ? histRate - histSpot : null;
+    const diff =
+      latestCumul != null && histCumul != null ? latestCumul - histCumul : null;
 
-  const latestCumul = latestRate != null && latestSpot != null ? latestRate - latestSpot : null;
-  const histCumul = histRate != null && histSpot != null ? histRate - histSpot : null;
-  const diff =
-    latestCumul != null && histCumul != null ? latestCumul - histCumul : null;
-
-  el("sideHint").classList.add("hidden");
-  el("sideBody").classList.remove("hidden");
-  el("sideTitle").textContent = contract;
-  el("kvSymbol").textContent = sym;
-  el("kvContract").textContent = contract;
-  el("kvPolicy").textContent = c.policy_name;
-
-  el("blkLatestDate").textContent = asof;
-  el("blkHistDate").textContent = hist;
-
-  el("mLatestRate").textContent = pct(latestRate);
-  el("mLatestSpot").textContent = pct(latestSpot);
-  el("mLatestCumul").textContent = bp(latestCumul);
-  el("mLatestCumul").className = signedClass(latestCumul);
-
-  el("mHistRate").textContent = pct(histRate);
-  el("mHistSpot").textContent = pct(histSpot);
-  el("mHistCumul").textContent = bp(histCumul);
-  el("mHistCumul").className = signedClass(histCumul);
-
-  el("mDiff").textContent = bp(diff);
-  el("mDiff").className = signedClass(diff);
-
-  let note = "";
-  if (diff != null) {
-    if (Math.abs(diff) < 1e-9) note = "Same priced change vs policy as on the historical date.";
-    else if (diff > 0)
-      note = "Latest prices more tightening (or less easing) into this tenor than the historical date.";
-    else note = "Latest prices less tightening (or more easing) into this tenor than the historical date.";
-  } else {
-    note = "Missing rate or spot for this date/contract.";
+    el("sideHint").classList.add("hidden");
+    el("sideSingle").classList.remove("hidden");
+    el("sideEyebrow").textContent = "Contract detail";
+    el("sideTitle").textContent = monthLabel(contract);
+    el("kvSymbol").textContent = c.symbols[contract];
+    el("kvContract").textContent = monthLabel(contract);
+    el("kvPolicy").textContent = c.policy_name;
+    el("blkLatestDate").textContent = c.asof;
+    el("blkHistDate").textContent = hist;
+    el("mLatestRate").textContent = pct(latestRate);
+    el("mLatestSpot").textContent = pct(latestSpot);
+    el("mLatestCumul").textContent = rateDiffBp(latestCumul);
+    el("mLatestCumul").className = signedClass(latestCumul);
+    el("mHistRate").textContent = pct(histRate);
+    el("mHistSpot").textContent = pct(histSpot);
+    el("mHistCumul").textContent = rateDiffBp(histCumul);
+    el("mHistCumul").className = signedClass(histCumul);
+    el("mDiff").textContent = rateDiffBp(diff);
+    el("mDiff").className = signedClass(diff);
+    el("deltaNote").textContent =
+      "Click a second month to lock a slope and see its history below.";
+    return;
   }
-  el("deltaNote").textContent = note;
+
+  el("sideHint").classList.remove("hidden");
+  el("sideEyebrow").textContent = "Selection";
+  el("sideTitle").textContent = "Click one or two points";
 }
 
 function seriesFor(dateKey, ratesMap, contracts) {
   const rates = ratesMap[dateKey] || {};
-  const x = [];
+  const codes = [];
   const y = [];
   for (const c of contracts) {
     if (rates[c] != null) {
-      x.push(c);
+      codes.push(c);
       y.push(rates[c]);
     }
   }
-  return { x, y };
+  return { codes, x: labelsFor(codes), y };
 }
 
-function render() {
+function markerStyle(codes, selectedSet, baseColor, activeColor) {
+  return {
+    size: codes.map((c) => (selectedSet.has(c) ? 13 : 8)),
+    color: codes.map((c) => (selectedSet.has(c) ? activeColor : baseColor)),
+  };
+}
+
+function renderStrip() {
   const c = currentCurve();
   const hist = histDate();
   el("sliderDate").textContent = hist;
 
   const latest = seriesFor(c.asof, c.rates, c.contracts);
   const historical = seriesFor(hist, c.rates, c.contracts);
-
-  const selected = state.selected;
-  const latestColors = latest.x.map((ct) => (ct === selected ? "#8a3510" : "#c45c26"));
-  const histColors = historical.x.map((ct) => (ct === selected ? "#0d4a55" : "#1a6b7a"));
-  const latestSizes = latest.x.map((ct) => (ct === selected ? 12 : 8));
-  const histSizes = historical.x.map((ct) => (ct === selected ? 12 : 8));
+  const selectedSet = new Set(state.selected);
+  const latestMk = markerStyle(latest.codes, selectedSet, "#c45c26", "#5b4db8");
+  const histMk = markerStyle(historical.codes, selectedSet, "#1a6b7a", "#5b4db8");
 
   const traces = [
     {
@@ -179,10 +268,10 @@ function render() {
       name: `Latest ${c.asof}`,
       type: "scatter",
       mode: "lines+markers",
-      line: { color: "#c45c26", width: 2.6, shape: "linear" },
-      marker: { size: latestSizes, color: latestColors, line: { width: 0 } },
+      line: { color: "#c45c26", width: 2.6 },
+      marker: latestMk,
+      customdata: latest.codes,
       hovertemplate: `%{x}<br>latest %{y:.3f}%<extra></extra>`,
-      customdata: latest.x.map(() => "latest"),
     },
     {
       x: historical.x,
@@ -190,20 +279,46 @@ function render() {
       name: `History ${hist}`,
       type: "scatter",
       mode: "lines+markers",
-      line: { color: "#1a6b7a", width: 2.2, dash: hist === c.asof ? "solid" : "dot" },
-      marker: { size: histSizes, color: histColors },
+      line: {
+        color: "#1a6b7a",
+        width: 2.2,
+        dash: hist === c.asof ? "solid" : "dot",
+      },
+      marker: histMk,
+      customdata: historical.codes,
       hovertemplate: `%{x}<br>${hist} %{y:.3f}%<extra></extra>`,
-      customdata: historical.x.map(() => "hist"),
     },
   ];
 
+  const pair = pairContracts();
+  if (pair) {
+    const [front, back] = pair;
+    // Draw pair connectors on both curves when rates exist
+    for (const [rates, name, color, dash] of [
+      [c.latest_rates, "Latest pair", "#c45c26", "solid"],
+      [c.rates[hist], "Hist pair", "#1a6b7a", "dot"],
+    ]) {
+      if (rates?.[front] == null || rates?.[back] == null) continue;
+      traces.push({
+        x: [monthLabel(front), monthLabel(back)],
+        y: [rates[front], rates[back]],
+        name,
+        type: "scatter",
+        mode: "lines+markers",
+        line: { color: "#5b4db8", width: 3, dash },
+        marker: { size: 11, color: "#5b4db8" },
+        hoverinfo: "skip",
+        showlegend: false,
+      });
+    }
+  }
+
   const layout = {
-    margin: { l: 55, r: 20, t: 10, b: 50 },
+    margin: { l: 52, r: 16, t: 8, b: 48 },
     paper_bgcolor: "rgba(0,0,0,0)",
     plot_bgcolor: "rgba(255,255,255,0.35)",
     font: { family: "Sora, sans-serif", color: "#12202c", size: 12 },
     xaxis: {
-      title: "",
       tickfont: { family: "IBM Plex Mono, monospace", size: 11 },
       gridcolor: "rgba(197,208,216,0.55)",
       zeroline: false,
@@ -216,27 +331,139 @@ function render() {
       zeroline: false,
       fixedrange: true,
     },
-    legend: { orientation: "h", y: 1.08, x: 0, font: { size: 11 } },
+    legend: { orientation: "h", y: 1.12, x: 0, font: { size: 11 } },
     hovermode: "closest",
-    separators: ".,",
-  };
-
-  const config = {
-    displayModeBar: false,
-    responsive: true,
   };
 
   const node = el("chart");
-  Plotly.react(node, traces, layout, config);
+  Plotly.react(node, traces, layout, { displayModeBar: false, responsive: true });
   if (!node._stirClickBound) {
     node.on("plotly_click", (ev) => {
       if (!ev?.points?.length) return;
-      state.selected = ev.points[0].x;
-      updateSide();
-      render();
+      const pt = ev.points[0];
+      const code = pt.customdata || codeFromLabel(pt.x, currentCurve().contracts);
+      onPointClick(code);
     });
     node._stirClickBound = true;
   }
+}
+
+function renderSlopeHistory() {
+  const c = currentCurve();
+  const pair = pairContracts();
+  const node = el("slopeChart");
+
+  if (!pair) {
+    el("slopeTitle").textContent = "Slope over time";
+    el("slopeSub").textContent = "Select two contracts on the strip";
+    Plotly.react(
+      node,
+      [],
+      {
+        margin: { l: 52, r: 16, t: 8, b: 40 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(255,255,255,0.35)",
+        xaxis: { visible: false },
+        yaxis: { visible: false },
+        annotations: [
+          {
+            text: "Click two months above to plot slope history",
+            showarrow: false,
+            font: { color: "#3d5160", size: 13, family: "Sora, sans-serif" },
+            xref: "paper",
+            yref: "paper",
+            x: 0.5,
+            y: 0.5,
+          },
+        ],
+      },
+      { displayModeBar: false, responsive: true }
+    );
+    return;
+  }
+
+  const [front, back] = pair;
+  el("slopeTitle").textContent = `${monthLabel(front)} − ${monthLabel(back)}`;
+  el("slopeSub").textContent = `Slope history (bp) · positive = inverted · vs latest ${c.asof}`;
+
+  const xs = [];
+  const ys = [];
+  for (const d of c.sessions) {
+    const s = slopeBp(c.rates[d], front, back);
+    if (s == null) continue;
+    xs.push(d);
+    ys.push(s);
+  }
+  const latestSlope = slopeBp(c.latest_rates, front, back);
+  const hist = histDate();
+
+  const traces = [
+    {
+      x: xs,
+      y: ys,
+      type: "scatter",
+      mode: "lines",
+      name: "Slope history",
+      line: { color: "#1a6b7a", width: 2 },
+      hovertemplate: `%{x}<br>%{y:.1f} bp<extra></extra>`,
+    },
+  ];
+  if (latestSlope != null) {
+    traces.push({
+      x: [xs[0], xs[xs.length - 1]],
+      y: [latestSlope, latestSlope],
+      type: "scatter",
+      mode: "lines",
+      name: `Latest ${latestSlope.toFixed(1)} bp`,
+      line: { color: "#c45c26", width: 2, dash: "dash" },
+      hoverinfo: "skip",
+    });
+  }
+  // Marker for slider date
+  const histSlope = slopeBp(c.rates[hist], front, back);
+  if (histSlope != null) {
+    traces.push({
+      x: [hist],
+      y: [histSlope],
+      type: "scatter",
+      mode: "markers",
+      name: "Slider date",
+      marker: { size: 11, color: "#5b4db8", symbol: "diamond" },
+      hovertemplate: `Slider %{x}<br>%{y:.1f} bp<extra></extra>`,
+    });
+  }
+
+  Plotly.react(
+    node,
+    traces,
+    {
+      margin: { l: 52, r: 16, t: 8, b: 40 },
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "rgba(255,255,255,0.35)",
+      font: { family: "Sora, sans-serif", color: "#12202c", size: 12 },
+      xaxis: {
+        tickfont: { family: "IBM Plex Mono, monospace", size: 10 },
+        gridcolor: "rgba(197,208,216,0.55)",
+        fixedrange: true,
+      },
+      yaxis: {
+        title: { text: "Slope (bp)", font: { size: 11, color: "#3d5160" } },
+        tickfont: { family: "IBM Plex Mono, monospace", size: 11 },
+        gridcolor: "rgba(197,208,216,0.55)",
+        zeroline: true,
+        zerolinecolor: "rgba(61,81,96,0.35)",
+        fixedrange: true,
+      },
+      legend: { orientation: "h", y: 1.14, x: 0, font: { size: 11 } },
+      hovermode: "x unified",
+    },
+    { displayModeBar: false, responsive: true }
+  );
+}
+
+function render() {
+  renderStrip();
+  renderSlopeHistory();
   updateSide();
 }
 
@@ -273,13 +500,12 @@ async function refresh() {
   const btn = el("refreshBtn");
   btn.disabled = true;
   try {
-    // Ask local server to rebuild if available; ignore failure for static open
     try {
       await fetch(new URL("api/rebuild", new URL(BASE, location.origin)).toString(), {
         method: "POST",
       });
     } catch (_) {
-      /* static / GitHub Pages — no rebuild API */
+      /* static */
     }
     await loadData({ bust: true });
     setTab(state.curve);
@@ -340,6 +566,10 @@ async function init() {
     render();
   });
   el("refreshBtn").addEventListener("click", refresh);
+  el("clearSelBtn").addEventListener("click", () => {
+    stopPlay();
+    clearSelection();
+  });
 
   await loadData();
   state.lastMeta = state.data.generated_at;
@@ -349,5 +579,6 @@ async function init() {
 
 init().catch((err) => {
   console.error(err);
-  el("sideHint").textContent = `Failed to load data/curves.json — run scripts/build_dashboard_data.py and serve research/dashboard.`;
+  el("sideHint").textContent =
+    "Failed to load data/curves.json — run scripts/build_dashboard_data.py and serve research/dashboard.";
 });
