@@ -1,41 +1,38 @@
 # STIR strips dashboard
 
-## Open it (pick one)
+## Open it now
 
-### Permanent static mirror (no Pages setup)
+**Working live link** (Cloudflare tunnel to this agent):
 
-https://cdn.jsdelivr.net/gh/ALILODHI-cloud/STIR_trade_research@gh-pages/index.html
+https://selected-connection-would-teaches.trycloudflare.com/
 
-Assets and `data/curves.json` load from the same CDN path. After each
-`gh-pages` publish, jsDelivr may cache the branch tip for up to ~12h; append
-`?t=` or pin a commit SHA if you need an instant refresh.
+Self-contained mirror on the same host (single file, no extra asset fetches):
 
-### Live tunnel (this cloud agent VM only)
+https://selected-connection-would-teaches.trycloudflare.com/stir-strips.html
 
-Ephemeral `*.trycloudflare.com` URL — ask the agent for the current hostname.
-Old tunnel links die; do not bookmark them.
+**Permanent preview** (no Pages setup; opens the bundled HTML via htmlpreview):
 
-### GitHub Pages (optional, auto weekday refresh)
+https://htmlpreview.github.io/?https://raw.githubusercontent.com/ALILODHI-cloud/STIR_trade_research/gh-pages/stir-strips.html
 
-One-time enable:
+## Optional: GitHub Pages
 
-1. https://github.com/ALILODHI-cloud/STIR_trade_research/settings/pages  
-2. Source: **Deploy from a branch** → **gh-pages** / root → Save  
-3. Site: https://alilodhi-cloud.github.io/STIR_trade_research/
+`github.io` stays 404 until you enable Pages once:
 
-Workflow: `.github/workflows/deploy-dashboard.yml` (push + weekdays 21:30 UTC).
+1. https://github.com/ALILODHI-cloud/STIR_trade_research/settings/pages
+2. Deploy from branch → **gh-pages** / root → Save
+3. Then: https://alilodhi-cloud.github.io/STIR_trade_research/
 
-## Why links failed
+## Why earlier links failed
 
-- Absolute `<base href="/STIR_trade_research/">` broke every host except
-  project Pages (CDN/tunnel asset paths 404). Removed.
-- Cloudflare quick tunnels expire.
-- `github.io` stays 404 until Pages is enabled once.
+- Absolute `<base href="/STIR_trade_research/">` broke tunnel/CDN asset paths (removed).
+- jsDelivr serves `.html` as `text/plain` (browser shows source, not the app).
+- Cloudflare quick tunnels expire — bookmark the htmlpreview URL instead.
+- `*.github.io` needs the one-time Pages enable above.
 
 ## Local
 
 ```bash
 python3 scripts/build_dashboard_data.py
+python3 scripts/pack_dashboard_bundle.py   # writes stir-strips.html
 python3 scripts/serve_dashboard.py
-# http://127.0.0.1:8765/
 ```
