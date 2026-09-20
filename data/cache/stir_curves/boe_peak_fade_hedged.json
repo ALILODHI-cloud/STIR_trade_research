@@ -1,0 +1,66 @@
+{
+  "asof": "2026-09-18",
+  "structures": {
+    "recv_J8U27_pay_IMU27": {
+      "spread": "SONIA U27 \u2212 EUR U27",
+      "last_bp": 129.50000000000026,
+      "ytd_mean": 138.53055555555557,
+      "ytd_max": 163.5000000000005,
+      "thesis": "Fade BoE peak vs ECB peak; GBP richer vs econ terminal"
+    },
+    "recv_J8U27_pay_J8Z26": {
+      "spread": "SONIA U27 \u2212 Z26",
+      "last_bp": 62.99999999999963,
+      "ytd_mean": 10.034530386740336,
+      "ytd_max": 62.99999999999963,
+      "thesis": "Fade peak vs own front; path-extension fade"
+    },
+    "recv_J8U27_vs_wings": {
+      "spread": "fly Z26-2U27+Z28",
+      "last_bp": -78.49999999999983,
+      "ytd_min": -78.49999999999983,
+      "thesis": "Receive peak vs both wings; max fly skew"
+    }
+  },
+  "u27_sonia_minus_eur": {
+    "last": 129.50000000000026,
+    "min": 112.5,
+    "max": 163.5000000000005,
+    "mean": 138.53055555555557,
+    "room_down": 17.000000000000256,
+    "room_up": 34.000000000000256,
+    "pct": 21.11111111111111,
+    "d30": 0.0
+  },
+  "u27_minus_z26_sonia": {
+    "last": 62.99999999999963,
+    "min": -20.49999999999983,
+    "max": 62.99999999999963,
+    "mean": 10.034530386740336,
+    "room_down": 83.49999999999946,
+    "room_up": 0.0,
+    "pct": 99.4475138121547,
+    "d30": 0.0
+  },
+  "fly": {
+    "last": -78.49999999999983,
+    "min": -78.49999999999983,
+    "max": 14.500000000001068,
+    "mean": -8.893646408839777,
+    "room_down": 0.0,
+    "room_up": 93.0000000000009,
+    "pct": 0.0,
+    "d30": 0.0
+  },
+  "u27_sonia_minus_sofr": {
+    "last": 14.000000000000146,
+    "min": -1.0000000000005116,
+    "max": 85.99999999999994,
+    "mean": 32.90482954545451,
+    "room_down": 15.000000000000657,
+    "room_up": 71.9999999999998,
+    "pct": 17.045454545454543,
+    "d30": 0.0
+  },
+  "econ_excess_gbp_vs_eur_bp": 29.500000000000256
+}
