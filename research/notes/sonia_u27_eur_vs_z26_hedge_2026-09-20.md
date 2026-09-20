@@ -80,3 +80,29 @@ better hedge empirically since August. That does **not** make the Sep/Sep
 cross the better *trade* at +129.5 — entry skew says the opposite.
 
 JSON: `data/cache/stir_curves/sonia_u27_eur_vs_z26_hedge.json`
+
+---
+
+## 5. In a rally, does UK outperform EUR? (recent sample)
+
+For **short cross** (recv SONIA U27 / pay EUR U27), “UK outperforms” =
+SONIA U27 **falls more** than Euribor U27 → cross compresses → short wins.
+
+| Sample / condition | n | Mean ΔSU | Mean ΔEU | Mean Δcross | % UK falls more |
+|---|---:|---:|---:|---:|---:|
+| **Aug+, SONIA U27 rally** (&lt;−0.5) | 11 | −6.8 | −4.1 | **−2.6** | **82%** |
+| Aug+, both peaks rally | 11 | −6.8 | −4.1 | **−2.6** | **82%** |
+| Aug+, EUR U27 rally | 14 | −5.2 | −3.6 | −1.6 | 64% |
+| Mar+, SONIA U27 rally | 61 | −6.4 | −4.4 | **−2.0** | **77%** |
+| Mar+, 5d SU rally &lt;−10 | 25 | −19.7 | −13.2 | **−6.5** | **96%** |
+
+**Asymmetry since Aug (important):** on SU selloff days mean Δcross **+0.7**;
+on SU rally days **−2.6**. Median |ΔSU|/|ΔEU| ≈ **1.75 in rallies** vs
+**~1.0 in selloffs**. So the recent sample says UK **does** lead on the way
+down more than it leads on the way up — favorable skew for the short cross
+*if* the move is a SONIA-peak rally.
+
+**Caveat:** Conditioning on **EUR-led** rallies (ΔEU &lt; −0.5) weakens it
+(Aug 64%; 2025+ only ~50%). The UK-outperforms pattern is a **UK-rally /
+peak-comes-in** fact, not a “any risk-on rally” fact. If Europe rallies
+alone, you should not expect the cross to compress.
