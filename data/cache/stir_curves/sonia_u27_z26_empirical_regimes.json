@@ -1,0 +1,179 @@
+{
+  "asof": "2026-09-18",
+  "flatten_episodes_full": [
+    {
+      "peak_date": "2022-03-01",
+      "peak_bp": 14.0,
+      "trough_date": "2022-08-15",
+      "trough_bp": -1.5,
+      "drop_bp": 15.5,
+      "sessions": 118,
+      "z_at_peak": 1.435,
+      "z_at_trough": 2.23,
+      "dz_over_flatten": 79.5
+    },
+    {
+      "peak_date": "2025-11-14",
+      "peak_bp": 12.5,
+      "trough_date": "2026-03-20",
+      "trough_bp": -20.5,
+      "drop_bp": 33.0,
+      "sessions": 87,
+      "z_at_peak": 3.44,
+      "z_at_trough": 4.625,
+      "dz_over_flatten": 118.5
+    }
+  ],
+  "conditional_ytd_05": [
+    {
+      "regime": "selloff dZ>+0.5",
+      "n": 81,
+      "mean_dZ": 5.8,
+      "mean_dU": 6.92,
+      "mean_dSpread": 1.13,
+      "median_dSpread": 0.5,
+      "pct_spread_up": 65.4,
+      "pct_spread_down": 30.9,
+      "beta_dU_on_dZ": 0.752,
+      "sum_dSpread": 91.2
+    },
+    {
+      "regime": "rally dZ<-0.5",
+      "n": 82,
+      "mean_dZ": -4.63,
+      "mean_dU": -5.31,
+      "mean_dSpread": -0.67,
+      "median_dSpread": -0.5,
+      "pct_spread_up": 28.0,
+      "pct_spread_down": 65.9,
+      "beta_dU_on_dZ": 0.886,
+      "sum_dSpread": -55.2
+    },
+    {
+      "regime": "quiet |dZ|<=0.5",
+      "n": 18,
+      "mean_dZ": 0.14,
+      "mean_dU": 0.97,
+      "mean_dSpread": 0.83,
+      "median_dSpread": 1.0,
+      "pct_spread_up": 77.8,
+      "pct_spread_down": 22.2,
+      "beta_dU_on_dZ": 2.796,
+      "sum_dSpread": 15.0
+    }
+  ],
+  "conditional_aug_05": [
+    {
+      "regime": "selloff dZ>+0.5",
+      "n": 19,
+      "mean_dZ": 2.68,
+      "mean_dU": 6.21,
+      "mean_dSpread": 3.53,
+      "median_dSpread": 3.0,
+      "pct_spread_up": 78.9,
+      "pct_spread_down": 10.5,
+      "beta_dU_on_dZ": 2.002,
+      "sum_dSpread": 67.0
+    },
+    {
+      "regime": "rally dZ<-0.5",
+      "n": 12,
+      "mean_dZ": -3.29,
+      "mean_dU": -6.0,
+      "mean_dSpread": -2.71,
+      "median_dSpread": -1.75,
+      "pct_spread_up": 16.7,
+      "pct_spread_down": 83.3,
+      "beta_dU_on_dZ": 2.043,
+      "sum_dSpread": -32.5
+    },
+    {
+      "regime": "quiet |dZ|<=0.5",
+      "n": 3,
+      "mean_dZ": 0.17,
+      "mean_dU": 1.17,
+      "mean_dSpread": 1.0,
+      "median_dSpread": 1.5,
+      "pct_spread_up": 100.0,
+      "pct_spread_down": 0.0,
+      "beta_dU_on_dZ": null,
+      "sum_dSpread": 3.0
+    }
+  ],
+  "conditional_full_05": [
+    {
+      "regime": "selloff dZ>+0.5",
+      "n": 602,
+      "mean_dZ": 5.71,
+      "mean_dU": 5.68,
+      "mean_dSpread": -0.02,
+      "median_dSpread": 0.0,
+      "pct_spread_up": 42.0,
+      "pct_spread_down": 49.2,
+      "beta_dU_on_dZ": 0.891,
+      "sum_dSpread": -13.8
+    },
+    {
+      "regime": "rally dZ<-0.5",
+      "n": 558,
+      "mean_dZ": -5.57,
+      "mean_dU": -5.47,
+      "mean_dSpread": 0.1,
+      "median_dSpread": 0.0,
+      "pct_spread_up": 46.6,
+      "pct_spread_down": 44.8,
+      "beta_dU_on_dZ": 0.935,
+      "sum_dSpread": 56.8
+    },
+    {
+      "regime": "quiet |dZ|<=0.5",
+      "n": 113,
+      "mean_dZ": 0.01,
+      "mean_dU": 0.13,
+      "mean_dSpread": 0.12,
+      "median_dSpread": 0.0,
+      "pct_spread_up": 44.2,
+      "pct_spread_down": 33.6,
+      "beta_dU_on_dZ": 1.591,
+      "sum_dSpread": 13.5
+    }
+  ],
+  "conditional_ytd_2": [
+    {
+      "regime": "selloff dZ>+2.0",
+      "n": 53,
+      "mean_dZ": 8.2,
+      "mean_dU": 9.44,
+      "mean_dSpread": 1.24,
+      "median_dSpread": 1.0,
+      "pct_spread_up": 71.7,
+      "pct_spread_down": 26.4,
+      "beta_dU_on_dZ": 0.65,
+      "sum_dSpread": 65.8
+    },
+    {
+      "regime": "rally dZ<-2.0",
+      "n": 54,
+      "mean_dZ": -6.4,
+      "mean_dU": -7.15,
+      "mean_dSpread": -0.75,
+      "median_dSpread": -1.0,
+      "pct_spread_up": 29.6,
+      "pct_spread_down": 66.7,
+      "beta_dU_on_dZ": 0.829,
+      "sum_dSpread": -40.5
+    },
+    {
+      "regime": "quiet |dZ|<=2.0",
+      "n": 74,
+      "mean_dZ": 0.04,
+      "mean_dU": 0.39,
+      "mean_dSpread": 0.35,
+      "median_dSpread": 0.0,
+      "pct_spread_up": 48.6,
+      "pct_spread_down": 44.6,
+      "beta_dU_on_dZ": 1.673,
+      "sum_dSpread": 25.7
+    }
+  ]
+}

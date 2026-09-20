@@ -157,7 +157,20 @@ Short from ~19-Aug (+28.5) → 18-Sep (+63) would have lost **~34.5 bp**.
 
 ---
 
-## 6. Thesis snapshot (for the evaluating agent)
+## 6. Empirical regimes (rally / selloff / has it flattened?)
+
+Full write-up: `research/notes/sonia_u27_z26_empirical_regimes_2026-09-20.md`  
+Figure: `research/notes/figures/sonia_u27_z26_rally_selloff_2026-09-18.png`
+
+| Question | Answer from the CSV |
+|---|---|
+| Ever flattened? | **Yes** — 640/1274 days spread &lt; 0; YTD trough **−20.5** (20-Mar); Nov’25→Mar’26 drop **33 bp** |
+| Selloff (ΔZ26 &gt; +0.5)? | YTD mean Δspread **+1.13**; since Aug **+3.53** → **steepens** |
+| Rally (ΔZ26 &lt; −0.5)? | YTD mean Δspread **−0.67**; since Aug **−2.71** → **flattens** |
+| Full 2021–26? | ~**no edge** (selloff −0.02 / rally +0.10) |
+| March flatten driver | Selloff with **β&lt;1** (Z26 became the peak) — opposite of Aug β≈2 |
+
+## 7. Thesis snapshot (for the evaluating agent)
 
 **Idea:** Fade the SONIA strip peak (Sep’27) vs Dec’26 — i.e. bet the hike
 path into U27 stops extending / mean-reverts.
@@ -186,7 +199,7 @@ Optional cross: short SONIA U27−Z26 vs long Euribor U27−Z26 (GBP−EUR ~+9.5
 
 ---
 
-## 7. Data provenance
+## 8. Data provenance
 
 - Futures: Barchart core-api EOD on fixed contracts `J8Z26`, `J8U27`
   (see `memory/book.md` data plan).
