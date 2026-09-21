@@ -18,7 +18,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
-from typing import Iterable
 
 import numpy as np
 import pandas as pd
@@ -28,7 +27,6 @@ from openpyxl.comments import Comment
 from openpyxl.formatting.rule import ColorScaleRule
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.dimensions import ColumnDimension
 
 ROOT = Path(__file__).resolve().parents[1]
 PANEL = ROOT / "data" / "cache" / "stir_curves" / "panel.csv"
