@@ -1,29 +1,31 @@
 # STIR strips dashboard
 
-## Open it now
+## Stable link
 
-Cloudflare quick tunnel (works from phone/laptop while this cloud agent is up;
-URL changes if the tunnel restarts):
+Use the branch-backed single-file dashboard:
 
-- https://wav-cut-gale-crossword.trycloudflare.com/
-- https://wav-cut-gale-crossword.trycloudflare.com/stir-strips.html
+- https://raw.githack.com/ALILODHI-cloud/STIR_trade_research/gh-pages/stir-strips.html
 
-Quick tunnels expire (roughly daily). If the link 404s/does not resolve,
-restart `cloudflared tunnel --url http://127.0.0.1:8765` and take the new URL.
+This URL does not change when the dashboard is republished. Raw.githack shows
+a safety confirmation the first time a browser opens HTML from this repository;
+continue once and the interactive dashboard loads. It is the working fallback
+until GitHub Pages is enabled.
 
 `stir-strips.html` is a single-file bundle (CSS/JS/curves inlined).
 As-of strip data: **2026-09-18**.
 
 ## Permanent hosting
 
-GitHub Pages is the durable host. Enable once (agent cannot flip this switch):
+GitHub Pages is the durable first-party host. The publishing workflow already
+keeps the `gh-pages` branch current. Enable the site once:
 
 1. https://github.com/ALILODHI-cloud/STIR_trade_research/settings/pages
 2. Source: **Deploy from a branch** → **gh-pages** / `(root)` → Save
 3. Site: https://alilodhi-cloud.github.io/STIR_trade_research/
 
-Until then `*.github.io` returns 404. Do **not** use jsDelivr for the HTML
-(it serves `text/plain`, so the browser shows source).
+Until step 2 is done, `*.github.io` returns 404. Cloudflare quick tunnels are
+deliberately not listed here because they expire. Do not use jsDelivr for the
+HTML (it serves `text/plain`, so the browser shows source).
 
 ## Local
 

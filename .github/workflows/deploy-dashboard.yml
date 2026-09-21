@@ -13,16 +13,14 @@ on:
     - cron: "30 21 * * 1-5"
   workflow_dispatch:
 
-# Dual publish:
-# 1) gh-pages branch (enable Pages → Deploy from a branch → gh-pages /)
-# 2) GitHub Actions Pages (enable Pages → Source: GitHub Actions)
+# Publish the built dashboard to gh-pages.  The branch is immediately usable
+# through raw.githack and becomes the first-party site when GitHub Pages is
+# enabled once with Source: gh-pages / (root).
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: dashboard-publish
   cancel-in-progress: true
 
 jobs:
@@ -60,21 +58,3 @@ jobs:
           publish_dir: research/dashboard
           force_orphan: true
           full_commit_message: "Deploy STIR dashboard"
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: research/dashboard
-        continue-on-error: true
-
-  deploy-actions-pages:
-    needs: build-and-publish
-    if: success()
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
-        continue-on-error: true

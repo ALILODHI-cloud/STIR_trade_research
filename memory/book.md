@@ -79,8 +79,14 @@ Newest last. One line each: date, decision, why.
 
 ## Dashboard hosting (2026-09-20)
 
-- Prefer jsDelivr `@gh-pages` or pinned SHA for a public static link; do not inject absolute Pages `<base href>`.
-- github.io needs a one-time Pages enable (Settings → Pages → gh-pages); agent token cannot enable it.
-- Cloudflare quick tunnels are ephemeral — never the only share link.
+- **Stable working link:** https://raw.githack.com/ALILODHI-cloud/STIR_trade_research/gh-pages/stir-strips.html
+  (single-file bundle; first browser visit has a one-click safety interstitial).
+- **Permanent first-party link after one-time enablement:**
+  https://alilodhi-cloud.github.io/STIR_trade_research/
+  GitHub Pages is currently disabled (API 404). Owner must select Settings →
+  Pages → Deploy from branch → `gh-pages` / root; agent token cannot enable it.
+- Workflow republishes `gh-pages`; once merged to the default branch its weekday
+  schedule keeps the same URL current. Cloudflare quick tunnels are ephemeral
+  and must never be quoted as the durable link. jsDelivr serves HTML as text.
 
 - 2026-09-20 — Spread convention is back − front (not front − back). Flatten = spread down; on an inverted gap that means invert more.
