@@ -5,8 +5,11 @@
 Cloudflare quick tunnel (works from phone/laptop while this cloud agent is up;
 URL changes if the tunnel restarts):
 
-- https://representing-depot-misc-cpu.trycloudflare.com/
-- https://representing-depot-misc-cpu.trycloudflare.com/stir-strips.html
+- https://wav-cut-gale-crossword.trycloudflare.com/
+- https://wav-cut-gale-crossword.trycloudflare.com/stir-strips.html
+
+Quick tunnels expire (roughly daily). If the link 404s/does not resolve,
+restart `cloudflared tunnel --url http://127.0.0.1:8765` and take the new URL.
 
 `stir-strips.html` is a single-file bundle (CSS/JS/curves inlined).
 As-of strip data: **2026-09-18**.
