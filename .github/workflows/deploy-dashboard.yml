@@ -46,6 +46,9 @@ jobs:
       - name: Pack self-contained HTML
         run: python3 scripts/pack_dashboard_bundle.py
 
+      - name: Add latest RV workbook download
+        run: cp research/peak_rv_universe_latest.xlsx research/dashboard/
+
       # Keep relative asset URLs (no <base href>). Absolute /STIR_trade_research/
       # bases break Cloudflare tunnels, jsDelivr, and raw.githack mirrors.
       # GitHub project Pages still resolve styles.css / data/* relative to the
