@@ -15,6 +15,7 @@ or after 1 March 2026.
 """
 from __future__ import annotations
 
+import shutil
 from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
@@ -30,7 +31,8 @@ from openpyxl.utils import get_column_letter
 
 ROOT = Path(__file__).resolve().parents[1]
 PANEL = ROOT / "data" / "cache" / "stir_curves" / "panel.csv"
-OUTPUT = ROOT / "research" / "peak_rv_universe_2026-09-18.xlsx"
+OUTPUT_DIR = ROOT / "research"
+LATEST_OUTPUT = OUTPUT_DIR / "peak_rv_universe_latest.xlsx"
 SAMPLE_START = pd.Timestamp("2026-03-01")
 
 PRIMITIVES = ["GB_BUILD", "GB_CUT", "EU_BUILD", "EU_CUT"]
@@ -73,7 +75,9 @@ THIN_GREY = Side(style="thin", color="D9E1F2")
 class Stat:
     n: int
     start: float
+    previous: float
     current: float
+    change_1d: float
     change: float
     mean: float
     median: float
@@ -102,6 +106,7 @@ def clean_series(s: pd.Series) -> pd.Series:
 def stats(s: pd.Series) -> Stat:
     s = clean_series(s)
     current = float(s.iloc[-1])
+    previous = float(s.iloc[-2]) if len(s) > 1 else np.nan
     start = float(s.iloc[0])
     std = float(s.std(ddof=1))
     percentile = float((s <= current).mean() * 100)
@@ -124,7 +129,9 @@ def stats(s: pd.Series) -> Stat:
     return Stat(
         n=len(s),
         start=start,
+        previous=previous,
         current=current,
+        change_1d=current - previous,
         change=current - start,
         mean=float(s.mean()),
         median=float(s.median()),
@@ -155,7 +162,9 @@ def stat_row(name: str, label: str, s: pd.Series, definition: str = "") -> dict:
         "definition": definition,
         "n": st.n,
         "start_bp": st.start,
+        "previous_bp": st.previous,
         "current_bp": st.current,
+        "change_1d_bp": st.change_1d,
         "change_since_start_bp": st.change,
         "mean_bp": st.mean,
         "median_bp": st.median,
@@ -419,7 +428,9 @@ def build_tables(x: pd.DataFrame):
     ratios = ratios.rename(
         columns={
             "start_bp": "start_ratio",
+            "previous_bp": "previous_ratio",
             "current_bp": "current_ratio",
+            "change_1d_bp": "change_1d_ratio",
             "change_since_start_bp": "change_since_start_ratio",
             "mean_bp": "mean_ratio",
             "median_bp": "median_ratio",
@@ -516,17 +527,24 @@ def candidate_table(x: pd.DataFrame, canonical: pd.DataFrame) -> pd.DataFrame:
     mixed_corr = float(
         x.GB_BUILD.diff().corr(x.EU_CUT.diff())
     )
+    both_curv = x.GB_BUILD + x.GB_CUT + x.EU_BUILD + x.EU_CUT
+    both_st = stats(both_curv)
     rows = [
         {
             "rank": 1,
             "candidate": "Short GBP peak curvature",
             "structure_id": "GB_PEAK_CURV",
             "current_bp": c.loc["GB_PEAK_CURV", "current_bp"],
+            "change_1d_bp": c.loc["GB_PEAK_CURV", "change_1d_bp"],
             "percentile": c.loc["GB_PEAK_CURV", "percentile"],
             "zscore": c.loc["GB_PEAK_CURV", "zscore"],
             "trade_legs": "RECEIVE 2× J8U27; PAY J8Z26; PAY J8Z28",
             "what_it_is": "Direct fade of SONIA Sep-27 richness to both front and belly wings",
-            "why_now": "Highest level since 2-Mar; +78.5 bp versus +14.8 mean",
+            "why_now": (
+                f"{c.loc['GB_PEAK_CURV', 'current_bp']:+.1f} bp at the "
+                f"{c.loc['GB_PEAK_CURV', 'percentile']:.1f}th percentile "
+                f"versus {c.loc['GB_PEAK_CURV', 'mean_bp']:+.1f} mean"
+            ),
             "main_risk": "Not a selloff hedge: another BoE path-extension shock sharpens the peak further",
             "hedge_diagnostic": "Absolute curvature fade; no cross-market hedge",
             "assessment": "BEST DIRECT BOE PEAK FADE",
@@ -536,6 +554,7 @@ def candidate_table(x: pd.DataFrame, canonical: pd.DataFrame) -> pd.DataFrame:
             "candidate": "Short GBP peak curvature vs EUR peak curvature",
             "structure_id": "REL_PEAK_CURV",
             "current_bp": c.loc["REL_PEAK_CURV", "current_bp"],
+            "change_1d_bp": c.loc["REL_PEAK_CURV", "change_1d_bp"],
             "percentile": c.loc["REL_PEAK_CURV", "percentile"],
             "zscore": c.loc["REL_PEAK_CURV", "zscore"],
             "trade_legs": (
@@ -543,7 +562,11 @@ def candidate_table(x: pd.DataFrame, canonical: pd.DataFrame) -> pd.DataFrame:
                 "PAY 2× IMU27; RECEIVE IMZ26/IMZ28"
             ),
             "what_it_is": "Fade BoE peak curvature relative to the same ECB curvature",
-            "why_now": "Relative curvature +12 bp, 98.6th percentile; corresponding cut differential is not extreme",
+            "why_now": (
+                f"Relative curvature {c.loc['REL_PEAK_CURV', 'current_bp']:+.1f} bp, "
+                f"{c.loc['REL_PEAK_CURV', 'percentile']:.1f}th percentile; "
+                "corresponding cut differential is not extreme"
+            ),
             "main_risk": "Different policy-cycle timing can sustain positive GBP curvature",
             "hedge_diagnostic": f"GBP/EUR curvature daily-change correlation since Aug: {curv_corr_aug:.2f}",
             "assessment": "BEST CROSS-MARKET RV",
@@ -553,6 +576,7 @@ def candidate_table(x: pd.DataFrame, canonical: pd.DataFrame) -> pd.DataFrame:
             "candidate": "Short GBP buildup vs long EUR buildup",
             "structure_id": "REL_BUILD",
             "current_bp": c.loc["REL_BUILD", "current_bp"],
+            "change_1d_bp": c.loc["REL_BUILD", "change_1d_bp"],
             "percentile": c.loc["REL_BUILD", "percentile"],
             "zscore": c.loc["REL_BUILD", "zscore"],
             "trade_legs": (
@@ -560,7 +584,11 @@ def candidate_table(x: pd.DataFrame, canonical: pd.DataFrame) -> pd.DataFrame:
                 "PAY IMU27; RECEIVE IMZ26"
             ),
             "what_it_is": "The Dec-26→Sep-27 curve box discussed with the user",
-            "why_now": "+9.5 bp, 99.3rd percentile; buildup daily changes correlate strongly across markets",
+            "why_now": (
+                f"{c.loc['REL_BUILD', 'current_bp']:+.1f} bp, "
+                f"{c.loc['REL_BUILD', 'percentile']:.1f}th percentile; "
+                "buildup daily changes correlate strongly across markets"
+            ),
             "main_risk": "ECB already delivered 50 bp in 2026; positive box partly reflects asynchronous cycles",
             "hedge_diagnostic": f"GBP/EUR buildup daily-change correlation since Aug: {build_corr_aug:.2f}",
             "assessment": "GOOD HEDGE, USE CONSERVATIVE TARGET",
@@ -569,15 +597,10 @@ def candidate_table(x: pd.DataFrame, canonical: pd.DataFrame) -> pd.DataFrame:
             "rank": 4,
             "candidate": "Short both GBP and EUR peak curvatures",
             "structure_id": "GB_AND_EU_PEAK_CURV",
-            "current_bp": float(
-                (x.GB_BUILD + x.GB_CUT + x.EU_BUILD + x.EU_CUT).iloc[-1]
-            ),
-            "percentile": stats(
-                x.GB_BUILD + x.GB_CUT + x.EU_BUILD + x.EU_CUT
-            ).percentile,
-            "zscore": stats(
-                x.GB_BUILD + x.GB_CUT + x.EU_BUILD + x.EU_CUT
-            ).zscore,
+            "current_bp": both_st.current,
+            "change_1d_bp": both_st.change_1d,
+            "percentile": both_st.percentile,
+            "zscore": both_st.zscore,
             "trade_legs": (
                 "RECEIVE 2× J8U27 and 2× IMU27; "
                 "PAY each market's Z26 and Z28 wings"
@@ -593,11 +616,15 @@ def candidate_table(x: pd.DataFrame, canonical: pd.DataFrame) -> pd.DataFrame:
             "candidate": "GBP buildup minus EUR reversal",
             "structure_id": "GB_BUILD_MINUS_EU_CUT",
             "current_bp": c.loc["GB_BUILD_MINUS_EU_CUT", "current_bp"],
+            "change_1d_bp": c.loc["GB_BUILD_MINUS_EU_CUT", "change_1d_bp"],
             "percentile": c.loc["GB_BUILD_MINUS_EU_CUT", "percentile"],
             "zscore": c.loc["GB_BUILD_MINUS_EU_CUT", "zscore"],
-            "trade_legs": "Statistically short the +50 bp difference",
+            "trade_legs": "Statistically short the mixed-horizon difference",
             "what_it_is": "User's mixed example: UK buildup compared with EUR cuts",
-            "why_now": "At the March-sample maximum",
+            "why_now": (
+                f"{c.loc['GB_BUILD_MINUS_EU_CUT', 'current_bp']:+.1f} bp, "
+                f"{c.loc['GB_BUILD_MINUS_EU_CUT', 'percentile']:.1f}th percentile"
+            ),
             "main_risk": "Daily-change correlation is near zero; subtraction does not create a hedge",
             "hedge_diagnostic": f"GBP buildup / EUR cut daily-change correlation: {mixed_corr:.2f}",
             "assessment": "EXTREME BUT REJECT AS PRIMARY RV",
@@ -607,11 +634,15 @@ def candidate_table(x: pd.DataFrame, canonical: pd.DataFrame) -> pd.DataFrame:
             "candidate": "Relative post-peak reversal",
             "structure_id": "REL_CUT",
             "current_bp": c.loc["REL_CUT", "current_bp"],
+            "change_1d_bp": c.loc["REL_CUT", "change_1d_bp"],
             "percentile": c.loc["REL_CUT", "percentile"],
             "zscore": c.loc["REL_CUT", "zscore"],
             "trade_legs": "No trade at current valuation",
             "what_it_is": "SONIA cut magnitude minus Euribor cut magnitude",
-            "why_now": "It is not extreme: +2.5 bp and near the middle of the March distribution",
+            "why_now": (
+                f"It is not extreme: {c.loc['REL_CUT', 'current_bp']:+.1f} bp at "
+                f"the {c.loc['REL_CUT', 'percentile']:.1f}th percentile"
+            ),
             "main_risk": "Forcing a trade where corresponding strips are already aligned",
             "hedge_diagnostic": f"GBP/EUR cut daily-change correlation: {x.GB_CUT.diff().corr(x.EU_CUT.diff()):.2f}",
             "assessment": "NO RELATIVE DISLOCATION",
@@ -783,7 +814,10 @@ def add_dashboard(
 
     ws["A3"] = "Four primitive strips"
     ws["A3"].font = Font(size=14, bold=True, color=NAVY)
-    cols = ["id", "label", "current_bp", "percentile", "zscore", "min_bp", "max_bp", "flag"]
+    cols = [
+        "id", "label", "previous_bp", "current_bp", "change_1d_bp",
+        "percentile", "zscore", "min_bp", "max_bp", "flag",
+    ]
     dash_out = outright[cols]
     end = write_dataframe(ws, dash_out, 4, 1)
 
@@ -795,17 +829,44 @@ def add_dashboard(
         "REL_PEAK_CURV", "GB_BUILD_MINUS_EU_CUT",
     ]
     dash_can = canonical.set_index("id").loc[ids].reset_index()[
-        ["id", "definition", "current_bp", "percentile", "zscore", "mean_bp", "flag"]
+        [
+            "id", "definition", "previous_bp", "current_bp", "change_1d_bp",
+            "percentile", "zscore", "mean_bp", "flag",
+        ]
     ]
     end2 = write_dataframe(ws, dash_can, end + 3, 1)
 
     ws.cell(end2 + 2, 1, "Bottom line").font = Font(size=14, bold=True, color=NAVY)
+    can = canonical.set_index("id")
     conclusions = [
-        "Both true peak-curvature measures are extreme: GBP +78.5 bp and EUR +66.5 bp.",
-        "Corresponding post-peak cut differential is not extreme: GBP−EUR cuts = +2.5 bp near the sample middle.",
-        "The strongest clean cross-market signal is GBP peak curvature rich to EUR by +12 bp (98.6th percentile).",
-        "The +9.5 bp buildup box is extreme but partly reflects ECB tightening already delivered before the box window.",
-        "UK buildup minus EUR cuts is statistically extreme but daily changes are nearly uncorrelated: reject it as a primary hedge.",
+        (
+            "True peak curvature: "
+            f"GBP {can.loc['GB_PEAK_CURV', 'current_bp']:+.1f} bp "
+            f"({can.loc['GB_PEAK_CURV', 'percentile']:.1f}th); "
+            f"EUR {can.loc['EU_PEAK_CURV', 'current_bp']:+.1f} bp "
+            f"({can.loc['EU_PEAK_CURV', 'percentile']:.1f}th)."
+        ),
+        (
+            "Corresponding post-peak cut differential: "
+            f"{can.loc['REL_CUT', 'current_bp']:+.1f} bp at the "
+            f"{can.loc['REL_CUT', 'percentile']:.1f}th percentile."
+        ),
+        (
+            "Relative GBP−EUR peak curvature: "
+            f"{can.loc['REL_PEAK_CURV', 'current_bp']:+.1f} bp at the "
+            f"{can.loc['REL_PEAK_CURV', 'percentile']:.1f}th percentile."
+        ),
+        (
+            "GBP−EUR buildup box: "
+            f"{can.loc['REL_BUILD', 'current_bp']:+.1f} bp at the "
+            f"{can.loc['REL_BUILD', 'percentile']:.1f}th percentile; "
+            "interpret with the delivered-ECB-hikes caveat."
+        ),
+        (
+            "UK buildup minus EUR cuts: "
+            f"{can.loc['GB_BUILD_MINUS_EU_CUT', 'current_bp']:+.1f} bp, "
+            "but daily changes are nearly uncorrelated: not a primary hedge."
+        ),
         "Within-market buildup minus cuts cancels U27. Use buildup plus cuts to fade the peak.",
     ]
     for r, text in enumerate(conclusions, end2 + 3):
@@ -988,9 +1049,12 @@ def build_workbook() -> Path:
         ws.page_setup.fitToHeight = 0
         ws.sheet_view.zoomScale = 90
 
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    wb.save(OUTPUT)
-    return OUTPUT
+    asof = str(x.index[-1].date())
+    output = OUTPUT_DIR / f"peak_rv_universe_{asof}.xlsx"
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    wb.save(output)
+    shutil.copyfile(output, LATEST_OUTPUT)
+    return output
 
 
 def validate(path: Path) -> None:
@@ -1017,6 +1081,8 @@ def main() -> None:
     path = build_workbook()
     validate(path)
     print(f"wrote {path} ({path.stat().st_size:,} bytes)")
+    validate(LATEST_OUTPUT)
+    print(f"wrote {LATEST_OUTPUT} ({LATEST_OUTPUT.stat().st_size:,} bytes)")
 
 
 if __name__ == "__main__":

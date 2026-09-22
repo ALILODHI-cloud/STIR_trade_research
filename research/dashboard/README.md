@@ -12,7 +12,7 @@ continue once and the interactive dashboard loads. It is the working fallback
 until GitHub Pages is enabled.
 
 `stir-strips.html` is a single-file bundle (CSS/JS/curves inlined).
-As-of strip data: **2026-09-18**.
+The current as-of date is shown in the dashboard header.
 
 ## Permanent hosting
 
