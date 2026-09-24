@@ -27,3 +27,15 @@ trades:
     thesis: "BoE front-to-peak extension compresses relative to ECB; receive SONIA U27/pay Z26, hedged by pay Euribor U27/receive Z26"
     note: research/notes/boe_peak_fade_hedged_2026-09-20.md
     levels_source: data/cache/stir_curves/panel.csv asof 2026-09-18
+  - id: gbp-u27-z26-peak-fade
+    date: 2026-09-23
+    market: GBP
+    structure: "buy SONIA Sep27/Dec26 price calendar: long J8U27, short J8Z26"
+    direction: long
+    status: live
+    entry: {date: 2026-09-23, level_bp: 62.5, size_lots: 1, dv01: 25}
+    stop_bp: 72.5
+    thesis: "BoE peak buildup compresses because policy is already restrictive and tightening beyond the November hike is overpriced"
+    source: own
+    note: research/notes/boe_peak_fade_hedged_2026-09-20.md
+    levels_source: user IBKR fill screenshot at price spread -0.625

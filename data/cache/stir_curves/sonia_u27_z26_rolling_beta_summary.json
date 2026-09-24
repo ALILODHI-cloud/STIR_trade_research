@@ -1,15 +1,15 @@
 {
-  "asof": "2026-09-22",
+  "asof": "2026-09-23",
   "definition": "beta30 = cov(dU27,dZ26)/var(dZ26), 30 sessions",
   "spread_definition": "100*(U27 rate - Z26 rate)",
-  "march_level_beta_correlation": 0.9553903650143879,
-  "descriptive_beta_change_per_10bp_higher_spread": 0.1701515777950987,
+  "march_level_beta_correlation": 0.9576678619319057,
+  "descriptive_beta_change_per_10bp_higher_spread": 0.1699355259975039,
   "march_beta_first": 0.9150203370133669,
-  "march_beta_last": 2.073426793235623,
+  "march_beta_last": 2.1002329534721995,
   "march_beta_min": 0.7754402678604365,
   "march_beta_min_date": "2026-03-19",
-  "march_beta_max": 2.0804483805040572,
-  "march_beta_max_date": "2026-09-21",
+  "march_beta_max": 2.1002329534721995,
+  "march_beta_max_date": "2026-09-23",
   "key_dates": {
     "2026-03-02": {
       "observation_date": "2026-03-02",
@@ -135,11 +135,11 @@
     },
     {
       "spread_bin": "[40.0, inf)",
-      "n": 11,
-      "mean_beta": 1.967456382259117,
-      "median_beta": 2.0015594635445053,
+      "n": 12,
+      "mean_beta": 1.978521096526874,
+      "median_beta": 2.008946937700633,
       "min_beta": 1.6834532374099498,
-      "max_beta": 2.0804483805040572
+      "max_beta": 2.1002329534721995
     }
   ],
   "non_overlapping_blocks": [
@@ -181,42 +181,42 @@
     },
     {
       "start": "2026-08-24",
-      "end": "2026-09-22",
-      "n": 21,
-      "beta_U27_on_Z26": 2.094902283220492,
+      "end": "2026-09-23",
+      "n": 22,
+      "beta_U27_on_Z26": 2.119349593495894,
       "spread_start_bp": 27.000000000001023,
-      "spread_end_bp": 56.99999999999932,
-      "spread_change_bp": 29.999999999998295
+      "spread_end_bp": 65.00000000000057,
+      "spread_change_bp": 37.999999999999545
     }
   ],
   "last30_hedge_ratios": [
     {
       "pay_Z26_per_receive_U27": 1.0,
-      "daily_pnl_vol_bp": 4.7707502000485675,
-      "mean_daily_pnl_bp": -1.0833333333332955,
+      "daily_pnl_vol_bp": 4.895605582865917,
+      "mean_daily_pnl_bp": -1.4166666666667045,
       "worst_daily_pnl_bp": -12.999999999999634,
-      "pnl_corr_with_Z26_change": -0.8332031439675815
+      "pnl_corr_with_Z26_change": -0.831601952784279
     },
     {
       "pay_Z26_per_receive_U27": 1.5,
-      "daily_pnl_vol_bp": 3.386511869708611,
-      "mean_daily_pnl_bp": -0.8583333333332869,
+      "daily_pnl_vol_bp": 3.5107490931995975,
+      "mean_daily_pnl_bp": -1.0916666666667159,
       "worst_daily_pnl_bp": -11.999999999999833,
-      "pnl_corr_with_Z26_change": -0.627033183852199
+      "pnl_corr_with_Z26_change": -0.6326409736102641
     },
     {
       "pay_Z26_per_receive_U27": 2.0,
-      "daily_pnl_vol_bp": 2.652043237455372,
-      "mean_daily_pnl_bp": -0.6333333333332783,
+      "daily_pnl_vol_bp": 2.744063603029473,
+      "mean_daily_pnl_bp": -0.7666666666667273,
       "worst_daily_pnl_bp": -11.000000000000032,
-      "pnl_corr_with_Z26_change": -0.10252720243345931
+      "pnl_corr_with_Z26_change": -0.13516169438051875
     },
     {
-      "pay_Z26_per_receive_U27": 2.073426793235623,
-      "daily_pnl_vol_bp": 2.6380675026275697,
-      "mean_daily_pnl_bp": -0.6002912763772469,
-      "worst_daily_pnl_bp": -10.853146413528815,
-      "pnl_corr_with_Z26_change": -3.953184810423431e-14
+      "pay_Z26_per_receive_U27": 2.1002329534721995,
+      "daily_pnl_vol_bp": 2.7188828532326212,
+      "mean_daily_pnl_bp": -0.7015152469097999,
+      "worst_daily_pnl_bp": -10.799534093055673,
+      "pnl_corr_with_Z26_change": -3.827226686075972e-14
     }
   ]
 }
