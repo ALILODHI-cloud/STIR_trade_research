@@ -5,8 +5,10 @@ on:
     branches: [claude/hopeful-babbage-ahkapg, cursor/stir-curve-snapshot-70e4]
     paths:
       - "research/dashboard/**"
+      - "research/peak_rv_universe_latest.xlsx"
       - "data/cache/stir_curves/**"
       - "scripts/build_dashboard_data.py"
+      - "scripts/build_peak_rv_workbook.py"
       - "scripts/refresh_fred_spots.py"
       - ".github/workflows/deploy-dashboard.yml"
   schedule:
