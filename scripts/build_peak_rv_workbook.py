@@ -4,17 +4,18 @@
 The four primitive series are economic rate magnitudes in basis points:
 
     GB_BUILD = SONIA U27 - SONIA Z26
-    GB_CUT   = SONIA U27 - SONIA Z28
+    GB_REVERSAL = SONIA Z28 - SONIA U27
     EU_BUILD = Euribor U27 - Euribor Z26
-    EU_CUT   = Euribor U27 - Euribor Z28
+    EU_REVERSAL = Euribor Z28 - Euribor U27
 
-Thus positive BUILD means hikes into the Sep-27 peak and positive CUT means
-cuts from the Sep-27 peak to Dec-28.  A raw futures-price U27-Z28 spread has
-the opposite sign to CUT.  The sample starts at the first common session on
-or after 1 March 2026.
+Thus positive BUILD means hikes into the Sep-27 peak and negative REVERSAL
+means cuts from the Sep-27 peak to Dec-28.  Every primitive uses the desk's
+back-minus-front rate convention.  The sample starts at the first common
+session on or after 1 March 2026.
 """
 from __future__ import annotations
 
+import argparse
 import shutil
 from dataclasses import dataclass
 from itertools import product
@@ -35,18 +36,18 @@ OUTPUT_DIR = ROOT / "research"
 LATEST_OUTPUT = OUTPUT_DIR / "peak_rv_universe_latest.xlsx"
 SAMPLE_START = pd.Timestamp("2026-03-01")
 
-PRIMITIVES = ["GB_BUILD", "GB_CUT", "EU_BUILD", "EU_CUT"]
+PRIMITIVES = ["GB_BUILD", "GB_REVERSAL", "EU_BUILD", "EU_REVERSAL"]
 LABELS = {
     "GB_BUILD": "SONIA buildup: U27 − Z26",
-    "GB_CUT": "SONIA reversal: U27 − Z28",
+    "GB_REVERSAL": "SONIA reversal: Z28 − U27",
     "EU_BUILD": "Euribor buildup: U27 − Z26",
-    "EU_CUT": "Euribor reversal: U27 − Z28",
+    "EU_REVERSAL": "Euribor reversal: Z28 − U27",
 }
 DESCRIPTIONS = {
     "GB_BUILD": "Cumulative SONIA rate rise from Dec-26 to the Sep-27 peak",
-    "GB_CUT": "Cumulative SONIA rate decline from the Sep-27 peak to Dec-28",
+    "GB_REVERSAL": "SONIA Dec-28 rate minus Sep-27 peak; negative means cuts",
     "EU_BUILD": "Cumulative Euribor rate rise from Dec-26 to the Sep-27 peak",
-    "EU_CUT": "Cumulative Euribor rate decline from the Sep-27 peak to Dec-28",
+    "EU_REVERSAL": "Euribor Dec-28 rate minus Sep-27 peak; negative means cuts",
 }
 SYMBOLS = {
     "GB_Z26": "J8Z26",
@@ -213,11 +214,11 @@ def expression(coeffs: dict[str, int]) -> str:
 def primitive_to_contract_weights(coeffs: dict[str, float]) -> dict[str, float]:
     return {
         "GB_Z26": -coeffs.get("GB_BUILD", 0),
-        "GB_U27": coeffs.get("GB_BUILD", 0) + coeffs.get("GB_CUT", 0),
-        "GB_Z28": -coeffs.get("GB_CUT", 0),
+        "GB_U27": coeffs.get("GB_BUILD", 0) - coeffs.get("GB_REVERSAL", 0),
+        "GB_Z28": coeffs.get("GB_REVERSAL", 0),
         "EU_Z26": -coeffs.get("EU_BUILD", 0),
-        "EU_U27": coeffs.get("EU_BUILD", 0) + coeffs.get("EU_CUT", 0),
-        "EU_Z28": -coeffs.get("EU_CUT", 0),
+        "EU_U27": coeffs.get("EU_BUILD", 0) - coeffs.get("EU_REVERSAL", 0),
+        "EU_Z28": coeffs.get("EU_REVERSAL", 0),
     }
 
 
@@ -240,12 +241,12 @@ def leg_text(weights: dict[str, float], direction: str) -> str:
 def canonical_series(x: pd.DataFrame) -> dict[str, tuple[pd.Series, str, str]]:
     return {
         "GB_PEAK_CURV": (
-            x.GB_BUILD + x.GB_CUT,
+            x.GB_BUILD - x.GB_REVERSAL,
             "2× SONIA U27 − SONIA Z26 − SONIA Z28",
             "Peak richness to both wings; true peak fade is SHORT this level",
         ),
         "EU_PEAK_CURV": (
-            x.EU_BUILD + x.EU_CUT,
+            x.EU_BUILD - x.EU_REVERSAL,
             "2× Euribor U27 − Euribor Z26 − Euribor Z28",
             "Peak richness to both wings; true peak fade is SHORT this level",
         ),
@@ -254,45 +255,47 @@ def canonical_series(x: pd.DataFrame) -> dict[str, tuple[pd.Series, str, str]]:
             "GB_BUILD − EU_BUILD",
             "BoE Dec-26→peak extension relative to ECB",
         ),
-        "REL_CUT": (
-            x.GB_CUT - x.EU_CUT,
-            "GB_CUT − EU_CUT",
-            "BoE post-peak reversal magnitude relative to ECB",
+        "REL_REVERSAL": (
+            x.GB_REVERSAL - x.EU_REVERSAL,
+            "GB_REVERSAL − EU_REVERSAL",
+            "BoE post-peak back-minus-front reversal relative to ECB",
         ),
         "REL_PEAK_CURV": (
-            (x.GB_BUILD + x.GB_CUT) - (x.EU_BUILD + x.EU_CUT),
+            (x.GB_BUILD - x.GB_REVERSAL)
+            - (x.EU_BUILD - x.EU_REVERSAL),
             "GB_PEAK_CURV − EU_PEAK_CURV",
             "BoE peak curvature relative to ECB peak curvature",
         ),
         "GB_FRONT_BACK": (
-            x.GB_BUILD - x.GB_CUT,
+            x.GB_BUILD + x.GB_REVERSAL,
             "SONIA Z28 − SONIA Z26",
             "Peak cancels: this is front-to-back slope, not a peak trade",
         ),
         "EU_FRONT_BACK": (
-            x.EU_BUILD - x.EU_CUT,
+            x.EU_BUILD + x.EU_REVERSAL,
             "Euribor Z28 − Euribor Z26",
             "Peak cancels: this is front-to-back slope, not a peak trade",
         ),
         "REL_FRONT_BACK": (
-            (x.GB_BUILD - x.GB_CUT) - (x.EU_BUILD - x.EU_CUT),
+            (x.GB_BUILD + x.GB_REVERSAL)
+            - (x.EU_BUILD + x.EU_REVERSAL),
             "GB_FRONT_BACK − EU_FRONT_BACK",
             "Relative Dec-26→Dec-28 slope",
         ),
-        "GB_BUILD_MINUS_EU_CUT": (
-            x.GB_BUILD - x.EU_CUT,
-            "GB_BUILD − EU_CUT",
+        "GB_BUILD_MINUS_EU_REVERSAL": (
+            x.GB_BUILD - x.EU_REVERSAL,
+            "GB_BUILD − EU_REVERSAL",
             "Mixed-horizon cross; user's example, but factors need not hedge",
         ),
-        "GB_CUT_MINUS_EU_BUILD": (
-            x.GB_CUT - x.EU_BUILD,
-            "GB_CUT − EU_BUILD",
+        "GB_REVERSAL_MINUS_EU_BUILD": (
+            x.GB_REVERSAL - x.EU_BUILD,
+            "GB_REVERSAL − EU_BUILD",
             "Mixed-horizon cross; factors need not hedge",
         ),
     }
 
 
-def load_data() -> tuple[pd.DataFrame, pd.DataFrame]:
+def load_data(asof: str | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
     panel = pd.read_csv(PANEL, parse_dates=["date"])
     rates = (
         panel[
@@ -303,6 +306,10 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame]:
         .sort_index()
     )
     rates = rates.loc[SAMPLE_START:].dropna()
+    if asof:
+        rates = rates.loc[:pd.Timestamp(asof)]
+        if rates.empty:
+            raise RuntimeError(f"no common curve data on or before {asof}")
     raw = pd.DataFrame(
         {
             "GB_Z26_rate_pct": rates["SONIA", "Z26"],
@@ -316,9 +323,9 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame]:
     x = pd.DataFrame(
         {
             "GB_BUILD": (rates["SONIA", "U27"] - rates["SONIA", "Z26"]) * 100,
-            "GB_CUT": (rates["SONIA", "U27"] - rates["SONIA", "Z28"]) * 100,
+            "GB_REVERSAL": (rates["SONIA", "Z28"] - rates["SONIA", "U27"]) * 100,
             "EU_BUILD": (rates["EURIBOR", "U27"] - rates["EURIBOR", "Z26"]) * 100,
-            "EU_CUT": (rates["EURIBOR", "U27"] - rates["EURIBOR", "Z28"]) * 100,
+            "EU_REVERSAL": (rates["EURIBOR", "Z28"] - rates["EURIBOR", "U27"]) * 100,
         }
     )
     return raw, x
@@ -508,8 +515,8 @@ def build_tables(x: pd.DataFrame):
 
 def candidate_table(x: pd.DataFrame, canonical: pd.DataFrame) -> pd.DataFrame:
     c = canonical.set_index("id")
-    gb_curv = x.GB_BUILD + x.GB_CUT
-    eu_curv = x.EU_BUILD + x.EU_CUT
+    gb_curv = x.GB_BUILD - x.GB_REVERSAL
+    eu_curv = x.EU_BUILD - x.EU_REVERSAL
     # Use a SONIA U27 proxy reconstructed from primitive changes only for the
     # candidate stress?  The exact U27 daily changes are not in x, so the
     # caller later supplies the observed results in explanatory text.  Here
@@ -525,9 +532,11 @@ def candidate_table(x: pd.DataFrame, canonical: pd.DataFrame) -> pd.DataFrame:
         )
     )
     mixed_corr = float(
-        x.GB_BUILD.diff().corr(x.EU_CUT.diff())
+        x.GB_BUILD.diff().corr(x.EU_REVERSAL.diff())
     )
-    both_curv = x.GB_BUILD + x.GB_CUT + x.EU_BUILD + x.EU_CUT
+    both_curv = (
+        x.GB_BUILD - x.GB_REVERSAL + x.EU_BUILD - x.EU_REVERSAL
+    )
     both_st = stats(both_curv)
     rows = [
         {
@@ -565,7 +574,7 @@ def candidate_table(x: pd.DataFrame, canonical: pd.DataFrame) -> pd.DataFrame:
             "why_now": (
                 f"Relative curvature {c.loc['REL_PEAK_CURV', 'current_bp']:+.1f} bp, "
                 f"{c.loc['REL_PEAK_CURV', 'percentile']:.1f}th percentile; "
-                "corresponding cut differential is not extreme"
+                "corresponding reversal differential is not extreme"
             ),
             "main_risk": "Different policy-cycle timing can sustain positive GBP curvature",
             "hedge_diagnostic": f"GBP/EUR curvature daily-change correlation since Aug: {curv_corr_aug:.2f}",
@@ -614,37 +623,37 @@ def candidate_table(x: pd.DataFrame, canonical: pd.DataFrame) -> pd.DataFrame:
         {
             "rank": 5,
             "candidate": "GBP buildup minus EUR reversal",
-            "structure_id": "GB_BUILD_MINUS_EU_CUT",
-            "current_bp": c.loc["GB_BUILD_MINUS_EU_CUT", "current_bp"],
-            "change_1d_bp": c.loc["GB_BUILD_MINUS_EU_CUT", "change_1d_bp"],
-            "percentile": c.loc["GB_BUILD_MINUS_EU_CUT", "percentile"],
-            "zscore": c.loc["GB_BUILD_MINUS_EU_CUT", "zscore"],
+            "structure_id": "GB_BUILD_MINUS_EU_REVERSAL",
+            "current_bp": c.loc["GB_BUILD_MINUS_EU_REVERSAL", "current_bp"],
+            "change_1d_bp": c.loc["GB_BUILD_MINUS_EU_REVERSAL", "change_1d_bp"],
+            "percentile": c.loc["GB_BUILD_MINUS_EU_REVERSAL", "percentile"],
+            "zscore": c.loc["GB_BUILD_MINUS_EU_REVERSAL", "zscore"],
             "trade_legs": "Statistically short the mixed-horizon difference",
-            "what_it_is": "User's mixed example: UK buildup compared with EUR cuts",
+            "what_it_is": "User's mixed example: UK buildup compared with EUR reversal",
             "why_now": (
-                f"{c.loc['GB_BUILD_MINUS_EU_CUT', 'current_bp']:+.1f} bp, "
-                f"{c.loc['GB_BUILD_MINUS_EU_CUT', 'percentile']:.1f}th percentile"
+                f"{c.loc['GB_BUILD_MINUS_EU_REVERSAL', 'current_bp']:+.1f} bp, "
+                f"{c.loc['GB_BUILD_MINUS_EU_REVERSAL', 'percentile']:.1f}th percentile"
             ),
             "main_risk": "Daily-change correlation is near zero; subtraction does not create a hedge",
-            "hedge_diagnostic": f"GBP buildup / EUR cut daily-change correlation: {mixed_corr:.2f}",
+            "hedge_diagnostic": f"GBP buildup / EUR reversal daily-change correlation: {mixed_corr:.2f}",
             "assessment": "EXTREME BUT REJECT AS PRIMARY RV",
         },
         {
             "rank": 6,
             "candidate": "Relative post-peak reversal",
-            "structure_id": "REL_CUT",
-            "current_bp": c.loc["REL_CUT", "current_bp"],
-            "change_1d_bp": c.loc["REL_CUT", "change_1d_bp"],
-            "percentile": c.loc["REL_CUT", "percentile"],
-            "zscore": c.loc["REL_CUT", "zscore"],
+            "structure_id": "REL_REVERSAL",
+            "current_bp": c.loc["REL_REVERSAL", "current_bp"],
+            "change_1d_bp": c.loc["REL_REVERSAL", "change_1d_bp"],
+            "percentile": c.loc["REL_REVERSAL", "percentile"],
+            "zscore": c.loc["REL_REVERSAL", "zscore"],
             "trade_legs": "No trade at current valuation",
-            "what_it_is": "SONIA cut magnitude minus Euribor cut magnitude",
+            "what_it_is": "SONIA back-minus-front reversal minus Euribor reversal",
             "why_now": (
-                f"It is not extreme: {c.loc['REL_CUT', 'current_bp']:+.1f} bp at "
-                f"the {c.loc['REL_CUT', 'percentile']:.1f}th percentile"
+                f"It is not extreme: {c.loc['REL_REVERSAL', 'current_bp']:+.1f} bp at "
+                f"the {c.loc['REL_REVERSAL', 'percentile']:.1f}th percentile"
             ),
             "main_risk": "Forcing a trade where corresponding strips are already aligned",
-            "hedge_diagnostic": f"GBP/EUR cut daily-change correlation: {x.GB_CUT.diff().corr(x.EU_CUT.diff()):.2f}",
+            "hedge_diagnostic": f"GBP/EUR reversal daily-change correlation: {x.GB_REVERSAL.diff().corr(x.EU_REVERSAL.diff()):.2f}",
             "assessment": "NO RELATIVE DISLOCATION",
         },
     ]
@@ -736,14 +745,17 @@ def add_readme(wb: Workbook, asof: str, sample_first: str, n: int):
         ("Sample", f"{sample_first} to {asof}; {n} common sessions"),
         ("Source", "data/cache/stir_curves/panel.csv (Barchart fixed contracts)"),
         ("Units", "Rate-space basis points unless explicitly marked as a ratio"),
-        ("Sign convention", "BUILD = U27−Z26; CUT = U27−Z28. Positive CUT means more cuts after peak."),
+        (
+            "Sign convention",
+            "Every spread is back minus front: BUILD = U27−Z26; REVERSAL = Z28−U27. Negative reversal means cuts.",
+        ),
         (
             "Futures-price warning",
             "A futures-price U27−Z28 spread has the opposite sign. The workbook uses economic rate magnitudes.",
         ),
         (
             "Critical algebra",
-            "BUILD − CUT = Z28−Z26, so the Sep-27 peak cancels. BUILD + CUT = 2×U27−Z26−Z28 and is true peak curvature.",
+            "BUILD + REVERSAL = Z28−Z26, so the Sep-27 peak cancels. BUILD − REVERSAL = 2×U27−Z26−Z28 and is true peak curvature.",
         ),
         (
             "Percentile",
@@ -825,8 +837,8 @@ def add_dashboard(
         size=14, bold=True, color=NAVY
     )
     ids = [
-        "GB_PEAK_CURV", "EU_PEAK_CURV", "REL_BUILD", "REL_CUT",
-        "REL_PEAK_CURV", "GB_BUILD_MINUS_EU_CUT",
+        "GB_PEAK_CURV", "EU_PEAK_CURV", "REL_BUILD", "REL_REVERSAL",
+        "REL_PEAK_CURV", "GB_BUILD_MINUS_EU_REVERSAL",
     ]
     dash_can = canonical.set_index("id").loc[ids].reset_index()[
         [
@@ -847,9 +859,9 @@ def add_dashboard(
             f"({can.loc['EU_PEAK_CURV', 'percentile']:.1f}th)."
         ),
         (
-            "Corresponding post-peak cut differential: "
-            f"{can.loc['REL_CUT', 'current_bp']:+.1f} bp at the "
-            f"{can.loc['REL_CUT', 'percentile']:.1f}th percentile."
+            "Corresponding post-peak reversal differential: "
+            f"{can.loc['REL_REVERSAL', 'current_bp']:+.1f} bp at the "
+            f"{can.loc['REL_REVERSAL', 'percentile']:.1f}th percentile."
         ),
         (
             "Relative GBP−EUR peak curvature: "
@@ -863,11 +875,11 @@ def add_dashboard(
             "interpret with the delivered-ECB-hikes caveat."
         ),
         (
-            "UK buildup minus EUR cuts: "
-            f"{can.loc['GB_BUILD_MINUS_EU_CUT', 'current_bp']:+.1f} bp, "
+            "UK buildup minus EUR reversal: "
+            f"{can.loc['GB_BUILD_MINUS_EU_REVERSAL', 'current_bp']:+.1f} bp, "
             "but daily changes are nearly uncorrelated: not a primary hedge."
         ),
-        "Within-market buildup minus cuts cancels U27. Use buildup plus cuts to fade the peak.",
+        "Within-market buildup plus reversal cancels U27. Use buildup minus reversal to fade the peak.",
     ]
     for r, text in enumerate(conclusions, end2 + 3):
         ws.cell(r, 1, "•")
@@ -967,8 +979,8 @@ def add_difference_matrix(wb: Workbook, x: pd.DataFrame):
     ws["B22"].alignment = Alignment(wrap_text=True, vertical="top")
 
 
-def build_workbook() -> Path:
-    raw_rates, x = load_data()
+def build_workbook(asof: str | None = None, update_latest: bool = True) -> Path:
+    raw_rates, x = load_data(asof)
     (
         outright,
         ordered,
@@ -1053,7 +1065,8 @@ def build_workbook() -> Path:
     output = OUTPUT_DIR / f"peak_rv_universe_{asof}.xlsx"
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     wb.save(output)
-    shutil.copyfile(output, LATEST_OUTPUT)
+    if update_latest:
+        shutil.copyfile(output, LATEST_OUTPUT)
     return output
 
 
@@ -1078,11 +1091,15 @@ def validate(path: Path) -> None:
 
 
 def main() -> None:
-    path = build_workbook()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--asof", help="Build a historical workbook through YYYY-MM-DD")
+    args = parser.parse_args()
+    path = build_workbook(args.asof, update_latest=args.asof is None)
     validate(path)
     print(f"wrote {path} ({path.stat().st_size:,} bytes)")
-    validate(LATEST_OUTPUT)
-    print(f"wrote {LATEST_OUTPUT} ({LATEST_OUTPUT.stat().st_size:,} bytes)")
+    if args.asof is None:
+        validate(LATEST_OUTPUT)
+        print(f"wrote {LATEST_OUTPUT} ({LATEST_OUTPUT.stat().st_size:,} bytes)")
 
 
 if __name__ == "__main__":
