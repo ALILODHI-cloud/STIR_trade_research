@@ -35,22 +35,31 @@ def contract_key(contract: str) -> tuple[int, int]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--asof", help="Session date YYYY-MM-DD; defaults to panel max")
+    parser.add_argument(
+        "--lookback-sessions",
+        type=int,
+        default=2,
+        help="Also calculate the cumulative move over this many sessions",
+    )
     args = parser.parse_args()
 
     panel = pd.read_csv(PANEL, parse_dates=["date"])
     asof = pd.Timestamp(args.asof) if args.asof else panel.date.max()
     prior_dates = sorted(d for d in panel.date.unique() if d < asof)
-    if not prior_dates:
+    if len(prior_dates) < args.lookback_sessions:
         raise RuntimeError(f"no prior session before {asof.date()}")
     previous = pd.Timestamp(prior_dates[-1])
+    lookback_start = pd.Timestamp(prior_dates[-args.lookback_sessions])
 
-    two = panel[panel.date.isin([previous, asof])].copy()
-    rates = two.pivot_table(
+    selected = panel[panel.date.isin([lookback_start, previous, asof])].copy()
+    rates = selected.pivot_table(
         index=["curve", "symbol", "contract"], columns="date", values=["price", "rate"]
     )
     needed = [
+        ("price", lookback_start),
         ("price", previous),
         ("price", asof),
+        ("rate", lookback_start),
         ("rate", previous),
         ("rate", asof),
     ]
@@ -61,17 +70,28 @@ def main() -> None:
             "curve": identifiers.curve,
             "symbol": identifiers.symbol,
             "contract": identifiers.contract,
+            "lookback_start_date": str(lookback_start.date()),
             "previous_date": str(previous.date()),
             "asof_date": str(asof.date()),
+            "lookback_start_price": rates[("price", lookback_start)].to_numpy(),
             "previous_price": rates[("price", previous)].to_numpy(),
             "current_price": rates[("price", asof)].to_numpy(),
-            "price_move": (
+            "price_move_1d": (
                 rates[("price", asof)] - rates[("price", previous)]
             ).to_numpy(),
+            f"price_move_{args.lookback_sessions}d": (
+                rates[("price", asof)] - rates[("price", lookback_start)]
+            ).to_numpy(),
+            "lookback_start_rate": rates[("rate", lookback_start)].to_numpy(),
             "previous_rate": rates[("rate", previous)].to_numpy(),
             "current_rate": rates[("rate", asof)].to_numpy(),
-            "rate_move_bp": (
+            "rate_move_1d_bp": (
                 rates[("rate", asof)] - rates[("rate", previous)]
+            )
+            .to_numpy()
+            * 100,
+            f"rate_move_{args.lookback_sessions}d_bp": (
+                rates[("rate", asof)] - rates[("rate", lookback_start)]
             )
             .to_numpy()
             * 100,
