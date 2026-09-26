@@ -6,9 +6,11 @@ on:
     paths:
       - "research/dashboard/**"
       - "research/peak_rv_universe_latest.xlsx"
+      - "research/stir_full_rv_universe_latest.xlsx"
       - "data/cache/stir_curves/**"
       - "scripts/build_dashboard_data.py"
       - "scripts/build_peak_rv_workbook.py"
+      - "scripts/build_full_rv_workbook.py"
       - "scripts/refresh_fred_spots.py"
       - ".github/workflows/deploy-dashboard.yml"
   schedule:
@@ -49,7 +51,9 @@ jobs:
         run: python3 scripts/pack_dashboard_bundle.py
 
       - name: Add latest RV workbook download
-        run: cp research/peak_rv_universe_latest.xlsx research/dashboard/
+        run: |
+          cp research/peak_rv_universe_latest.xlsx research/dashboard/
+          cp research/stir_full_rv_universe_latest.xlsx research/dashboard/
 
       # Keep relative asset URLs (no <base href>). Absolute /STIR_trade_research/
       # bases break Cloudflare tunnels, jsDelivr, and raw.githack mirrors.

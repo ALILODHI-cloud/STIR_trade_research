@@ -14,6 +14,7 @@ until GitHub Pages is enabled.
 Latest RV workbook:
 
 - https://raw.githubusercontent.com/ALILODHI-cloud/STIR_trade_research/gh-pages/peak_rv_universe_latest.xlsx
+- https://raw.githubusercontent.com/ALILODHI-cloud/STIR_trade_research/gh-pages/stir_full_rv_universe_latest.xlsx
 
 `stir-strips.html` is a single-file bundle (CSS/JS/curves inlined).
 The current as-of date is shown in the dashboard header.
