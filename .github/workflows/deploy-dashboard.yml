@@ -1,0 +1,69 @@
+name: Deploy STIR dashboard
+
+on:
+  push:
+    branches: [claude/hopeful-babbage-ahkapg, cursor/stir-curve-snapshot-70e4]
+    paths:
+      - "research/dashboard/**"
+      - "research/peak_rv_universe_latest.xlsx"
+      - "research/stir_full_rv_universe_latest.xlsx"
+      - "data/cache/stir_curves/**"
+      - "scripts/build_dashboard_data.py"
+      - "scripts/build_peak_rv_workbook.py"
+      - "scripts/build_full_rv_workbook.py"
+      - "scripts/refresh_fred_spots.py"
+      - ".github/workflows/deploy-dashboard.yml"
+  schedule:
+    - cron: "30 21 * * 1-5"
+  workflow_dispatch:
+
+# Publish the built dashboard to gh-pages.  The branch is immediately usable
+# through raw.githack and becomes the first-party site when GitHub Pages is
+# enabled once with Source: gh-pages / (root).
+permissions:
+  contents: write
+
+concurrency:
+  group: dashboard-publish
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install pandas curl_cffi
+
+      - name: Refresh FRED policy spots
+        run: python3 scripts/refresh_fred_spots.py
+        continue-on-error: true
+
+      - name: Build dashboard JSON
+        run: python3 scripts/build_dashboard_data.py
+
+      - name: Pack self-contained HTML
+        run: python3 scripts/pack_dashboard_bundle.py
+
+      - name: Add latest RV workbook download
+        run: |
+          cp research/peak_rv_universe_latest.xlsx research/dashboard/
+          cp research/stir_full_rv_universe_latest.xlsx research/dashboard/
+
+      # Keep relative asset URLs (no <base href>). Absolute /STIR_trade_research/
+      # bases break Cloudflare tunnels, jsDelivr, and raw.githack mirrors.
+      # GitHub project Pages still resolve styles.css / data/* relative to the
+      # site root at /STIR_trade_research/ once Pages is enabled.
+
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: research/dashboard
+          force_orphan: true
+          full_commit_message: "Deploy STIR dashboard"

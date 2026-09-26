@@ -1,0 +1,15 @@
+{
+  "asof": "2026-09-18",
+  "dfr": 2.5,
+  "z26": 3.049999999999997,
+  "u27_peak": 3.5849999999999937,
+  "z27": 3.5649999999999977,
+  "z28": 3.4549999999999983,
+  "z28_minus_z27_bp": -10.999999999999943,
+  "approx_1y1y_futures": 3.528999999999999,
+  "approx_1y1y_vs_dfr_bp": 102.8999999999999,
+  "belly_minus_z26_bp": 47.90000000000019,
+  "gs_trade": "Pay CHF 1y1y vs EUR 1y1y (long EUR 1y1y / short CHF 1y1y)",
+  "entry_spread_gs": "3.02 (CHF\u2212EUR 1y1y), latest 2.96, target 2.65, stop 3.25",
+  "chf_data": null
+}

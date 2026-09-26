@@ -22,7 +22,9 @@ SOFR, SONIA, ESTR/Euribor, TONA, CORRA, AUD/NZD bank bills.
 
 - Fly sign: rate-space `(1,-2,1)`; positive = body rate below the line through
   the wings. NOT YET CONFIRMED against the owner's desk convention — ask.
-- Spread sign: rate space, front minus back; positive = inverted.
+- Spread / slope sign (CONFIRMED 2026-09-20): rate space **back − front**.
+  Positive = steep (back > front). Negative = inverted (back < front).
+  Flatten = spread falls. When already inverted, flatten further = invert more.
 - OIS steps keyed on policy *effective* dates, not announcement dates.
 
 ## Open items / unconfirmed
@@ -37,26 +39,24 @@ SOFR, SONIA, ESTR/Euribor, TONA, CORRA, AUD/NZD bank bills.
       (main/master) is created later, the hook must be merged there or
       sessions will start with no memory loaded.
 
-## Data sourcing plan (as of 2026-09-19)
+## Data sourcing plan (as of 2026-09-19, updated same day)
 
-- Chosen candidate: **Barchart**, for both latest-day settles and historical
-  daily bars per fixed contract. Owner corrected an earlier claim of mine that
-  futures settlement history was only obtainable from a terminal — Barchart's
-  API serves history too.
-- Blocked on two things:
-  1. Egress. Every external host is denied (17/17 providers tested, incl.
-     Barchart, Yahoo, Stooq, FRED, CME, ICE). The proxy bypass list contains
-     only package registries and Anthropic APIs. Fix is the environment's
-     network access policy at claude.ai/code, not a different vendor.
-  2. An API key. Preferred over page-scraping: stable format, no terms
-     friction. Store as an env var, never in the repo.
-- UNVERIFIED: Barchart's coverage of ICE products (Euribor, SONIA). CME
-  (SOFR) expected fine. Cheaper tiers often exclude ICE entitlements. Test
-  empirically before designing around it.
-- Contract symbols on Barchart must be confirmed against the live API, not
-  assumed. Use FIXED contracts (ERZ6, SR3H7), never generics (ER1, SFR1) —
-  generics roll, which silently splices contracts and invalidates any
-  change-over-time or biggest-mover calculation.
+- **Working path:** Barchart core-api via a headed Chrome session that clears
+  AWS WAF. Endpoints:
+  - `proxies/core-api/v1/historical/get` with `type=eod` for fixed contracts
+  - `proxies/core-api/v1/quotes/get` for latest strip prints
+- **Confirmed roots on Barchart:** `SQ` = 3M SOFR (not SR3 — that's CME),
+  `IM` = 3M Euribor, `J8` = 3M SONIA. Always fixed contracts (`SQZ26`), never
+  generics (`SQ*1` / `SQ1`).
+- **FRED** is reachable in this environment for spot anchors (`SOFR`,
+  `IUDSOIA`/SONIA, `ECBDFR`, `EFFR`). 3M Euribor fixing series not found on
+  FRED under the usual tickers; use futures path + DFR for policy context.
+- **Yahoo** has SR3 latest only (no useful history). CME settlements HTML
+  works in a browser; REST settlements returned empty from this host.
+- **API key still preferred** (`BARCHART_API_KEY`) so we can drop the browser
+  scrape. Requested as an environment secret; not yet present.
+- Scripts: `scripts/fetch_barchart_stir.py` → `data/raw/stir_futures/`,
+  `scripts/stir_curve_snapshot.py` → note + interactive HTML.
 
 ## Decision log
 
@@ -71,3 +71,22 @@ Newest last. One line each: date, decision, why.
 - 2026-09-19 — Subagents start cold and inherit none of this memory. Use them
   only for parallel, self-contained work (e.g. one PDF each); never for
   judgement that depends on the book.
+- 2026-09-19 — Barchart browser scrape is the live futures source until an API
+  key lands. Never invent/model missing history (a subagent did; discarded).
+- 2026-09-19 — Owner asked for end-2026 priced change + YTD interactive curves
+  + 2w movers + Euribor Z27/Z28 inversion check; snapshot asof 2026-09-18 in
+  `research/notes/stir_curve_snapshot_2026-09-18.md`.
+
+## Dashboard hosting (2026-09-20)
+
+- **Stable working link:** https://raw.githack.com/ALILODHI-cloud/STIR_trade_research/gh-pages/stir-strips.html
+  (single-file bundle; first browser visit has a one-click safety interstitial).
+- **Permanent first-party link after one-time enablement:**
+  https://alilodhi-cloud.github.io/STIR_trade_research/
+  GitHub Pages is currently disabled (API 404). Owner must select Settings →
+  Pages → Deploy from branch → `gh-pages` / root; agent token cannot enable it.
+- Workflow republishes `gh-pages`; once merged to the default branch its weekday
+  schedule keeps the same URL current. Cloudflare quick tunnels are ephemeral
+  and must never be quoted as the durable link. jsDelivr serves HTML as text.
+
+- 2026-09-20 — Spread convention is back − front (not front − back). Flatten = spread down; on an inverted gap that means invert more.

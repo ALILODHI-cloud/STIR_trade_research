@@ -68,8 +68,11 @@ scripts/                  runnable analyses
 
 ## Conventions worth knowing before reading output
 
-- **Spread** `(1,-1)` in rate space = front rate − back rate. Positive means
-  inverted, i.e. cuts priced.
+- **Spread** `(1,-1)` in rate space = **back rate − front rate** (desk
+  convention, confirmed 2026-09-20). Positive means steep; negative means
+  inverted. Flatten = the spread falls. When already inverted, flatten further
+  = invert more. (Older notes that said front − back are flipped at the
+  reporting layer.)
 - **Fly** `(1,-2,1)` in rate space = wing1 − 2·body + wing2. Positive means
   the body rate sits *below* the line through the wings. Desks differ on this
   sign — if yours is the other way, negate at the reporting layer, don't

@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-09-26T07:49:48.629606+00:00",
+  "asof": "2026-09-25",
+  "bytes": 170599,
+  "curves": {
+    "SOFR": {
+      "n_sessions": 185,
+      "n_contracts": 12
+    },
+    "EURIBOR": {
+      "n_sessions": 188,
+      "n_contracts": 9
+    },
+    "SONIA": {
+      "n_sessions": 186,
+      "n_contracts": 10
+    }
+  }
+}

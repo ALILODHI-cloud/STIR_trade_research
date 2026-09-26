@@ -9,3 +9,5 @@ requests
 openpyxl
 pdfplumber
 ruff
+plotly
+playwright

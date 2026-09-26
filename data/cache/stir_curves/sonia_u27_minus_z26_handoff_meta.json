@@ -1,0 +1,22 @@
+{
+  "asof": "2026-09-18",
+  "front_contract": "Z26",
+  "front_month": "December 2026",
+  "front_symbol": "J8Z26",
+  "back_contract": "U27",
+  "back_month": "September 2027",
+  "back_symbol": "J8U27",
+  "spread_definition": "U27_rate - Z26_rate (bp); desk = back - front",
+  "trade": "Short spread = receive J8U27 / pay J8Z26; P&L \u2248 -\u0394(spread_bp)",
+  "last_bp": 62.99999999999963,
+  "z26_rate": 4.25,
+  "u27_rate": 4.879999999999996,
+  "sonia_spot": 3.7303,
+  "ytd_min": -20.49999999999983,
+  "ytd_max": 62.99999999999963,
+  "ytd_mean": 10.034530386740336,
+  "ytd_min_date": "2026-03-20",
+  "ytd_max_date": "2026-09-18",
+  "n_ytd": 181,
+  "n_full_csv": 1274
+}
